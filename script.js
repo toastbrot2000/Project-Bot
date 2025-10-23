@@ -1,6 +1,18 @@
 let xmlDoc;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // --- Viewport Height Fix for Mobile Browsers ---
+  const setViewportHeight = () => {
+    // window.innerHeight gives the actual visible viewport height.
+    // We convert it to a CSS unit by dividing by 100.
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  };
+  // Set the value on initial load
+  setViewportHeight();
+  // And reset it on window resize (e.g., orientation change)
+  window.addEventListener('resize', setViewportHeight);
+
   const chatBox = document.getElementById("chat-box");
   const resultsPage = document.getElementById("results-page");
   const recommendationsContainer = document.getElementById("recommendations-container");
@@ -191,7 +203,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="tooltip-modal-content">
             <button class="close-icon">&times;</button>
             <p>${getInnerXml(tooltipNode)}</p>
-            <button class="close-tooltip">Got it</button>
+            <div class="tooltip-modal-footer">
+              <button class="close-tooltip">Got it</button>
+            </div>
           </div>
         `;
 

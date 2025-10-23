@@ -13,7 +13,7 @@ body {
   display: flex;
   justify-content: center;
   padding: 20px;
-  height: calc(100vh - 40px); /* Adjust height to account for padding */
+  height: calc(calc(var(--vh, 1vh) * 100) - 40px); /* Adjust height to account for padding, using JS-calculated vh */
   box-sizing: border-box; /* Include padding in height calculation */
 }
 
@@ -70,7 +70,6 @@ body {
   background-color: #f1f1f1;
   padding: 12px 16px;
   position: relative;
-  padding-right: 40px;
   border-radius: 20px;
   max-width: 75%;
   font-size: 15px;
@@ -78,6 +77,10 @@ body {
   align-self: flex-start;
   margin: 4px 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chat-message.has-tooltip {
+  padding-right: 40px;
 }
 
 .chat-message.fade-in {
@@ -239,6 +242,11 @@ body {
 
 .tooltip-modal-content button.close-tooltip:hover {
   background: #005bb5;
+}
+
+/* Container to center the 'Got it' button in the modal */
+.tooltip-modal-footer {
+  text-align: center;
 }
 
 #resume-dialog {
