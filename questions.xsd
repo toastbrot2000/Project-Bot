@@ -8,6 +8,13 @@
           <xs:complexType>
             <xs:sequence>
               <xs:element name="text" type="xs:string"/>
+              <xs:element name="tooltip" minOccurs="0">
+                <xs:complexType mixed="true">
+                  <xs:sequence>
+                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
               <xs:element name="options">
                 <xs:complexType>
                   <xs:sequence>

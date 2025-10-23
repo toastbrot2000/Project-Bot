@@ -6,12 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const recommendationsContainer = document.getElementById("recommendations-container");
   const documentsContainer = document.getElementById("documents-container");
   const restartButton = document.getElementById("restart-button");
-  const confirmationDialog = document.getElementById("confirmation-dialog");
-  const confirmEditButton = document.getElementById("confirm-edit");
-  const cancelEditButton = document.getElementById("cancel-edit");
-  const resumeDialog = document.getElementById("resume-dialog");
-const resumeYes = document.getElementById("resume-yes");
-const resumeNo = document.getElementById("resume-no");
 
   let userAnswers = [];
   let recommendations = [];
@@ -45,28 +39,6 @@ const resumeNo = document.getElementById("resume-no");
   }
 
   restartButton.addEventListener("click", restartApp);
-
-  confirmEditButton.addEventListener("click", () => {
-    confirmationDialog.classList.add("hidden");
-    if (currentEditQuestionId !== null) {
-      const index = userAnswers.findIndex(ans => ans.questionId === currentEditQuestionId);
-      if (index !== -1) {
-        userAnswers = userAnswers.slice(0, index);
-        chatBox.innerHTML = "";
-        recommendations = [];
-        documents = new Set();
-        setCookie("savedAnswers", JSON.stringify(userAnswers), 30);
-        displayAllPreviousAnswers();
-        displayQuestion(xmlDoc, currentEditQuestionId);
-      }
-      currentEditQuestionId = null;
-    }
-  });
-
-  cancelEditButton.addEventListener("click", () => {
-    confirmationDialog.classList.add("hidden");
-    currentEditQuestionId = null;
-  });
 
   function setCookie(name, value, days) {
     const d = new Date();
@@ -119,40 +91,45 @@ const resumeNo = document.getElementById("resume-no");
       if (savedAnswers) {
         userAnswers = JSON.parse(savedAnswers);
         displayAllPreviousAnswers();
-  
-        resumeDialog.classList.remove("hidden");
-  
-        resumeYes.onclick = () => {
-          resumeDialog.classList.add("hidden");
-          const lastAnswer = userAnswers[userAnswers.length - 1];
-          const lastQuestionNode = xmlDoc.querySelector(`question[id="${lastAnswer.questionId}"]`);
-          
-          // Find next question based on the last answer
-          const nextQuestionNode = lastQuestionNode.querySelector(`nextQuestions > next[optionId="${lastAnswer.optionId}"]`);
-          // Fallback to default next question if no specific one is found
-          const defaultNextNode = lastQuestionNode.querySelector('nextQuestions > next:not([optionId])');
-          
-          const nextId = nextQuestionNode?.getAttribute("questionId") || defaultNextNode?.getAttribute("questionId");
-  
-          if (nextId) {
-            displayQuestion(xmlDoc, nextId);
-          } else {
-            evaluateDependencies();
-            displayResults();
-          }
-        };
-  
-        resumeNo.onclick = () => {
-          resumeDialog.classList.add("hidden");
+        showResumeDialog();
+      } else {
+        displayQuestion(xmlDoc, "1");
+      }
+    }
+
+    function handleResume(shouldResume) {
+      if (shouldResume) {
+        const lastAnswer = userAnswers[userAnswers.length - 1];
+        const lastQuestionNode = xmlDoc.querySelector(`question[id="${lastAnswer.questionId}"]`);
+        
+        // Find next question based on the last answer
+        const nextQuestionNode = lastQuestionNode.querySelector(`nextQuestions > next[optionId="${lastAnswer.optionId}"]`);
+        // Fallback to default next question if no specific one is found
+        const defaultNextNode = lastQuestionNode.querySelector('nextQuestions > next:not([optionId])');
+        
+        const nextId = nextQuestionNode?.getAttribute("questionId") || defaultNextNode?.getAttribute("questionId");
+
+        if (nextId) {
+          displayQuestion(xmlDoc, nextId);
+        } else {
+          evaluateDependencies();
+          displayResults();
+        }
+      } else {
           setCookie("savedAnswers", "", -1);
           chatBox.innerHTML = "";
           userAnswers = [];
           displayQuestion(xmlDoc, "1");
-        };
-  
-      } else {
-        displayQuestion(xmlDoc, "1");
       }
+    }
+
+    function getInnerXml(node) {
+      if (!node) return '';
+      const serializer = new XMLSerializer();
+      return Array.from(node.childNodes).map(child => {
+        // For element nodes, serialize them to string. For text nodes, just return their content.
+        return child.nodeType === Node.ELEMENT_NODE ? serializer.serializeToString(child) : child.textContent;
+      }).join('');
     }
 
   function displayQuestion(xmlDoc, questionId) {
@@ -182,21 +159,49 @@ const resumeNo = document.getElementById("resume-no");
         modal.className = 'tooltip-modal';
         modal.innerHTML = `
           <div class="tooltip-modal-content">
-            <p>${tooltipNode.textContent}</p>
+            <button class="close-icon">&times;</button>
+            <p>${getInnerXml(tooltipNode)}</p>
             <button class="close-tooltip">Got it</button>
           </div>
         `;
 
         document.body.appendChild(modal);
 
-        modal.querySelector('.close-tooltip').addEventListener('click', () => {
+        const closeModal = () => {
           modal.remove();
+          // Restore focus to the element that opened the modal (if needed)
+          // For now, it's the question message itself.
+          questionMessage.focus();
+        };
+
+        modal.querySelector('.close-tooltip').addEventListener('click', closeModal);
+        modal.querySelector('.close-icon').addEventListener('click', closeModal);
+
+        // Close modal on Escape key
+        const handleEscape = (event) => {
+          if (event.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEscape);
+          }
+        };
+        document.addEventListener('keydown', handleEscape);
+
+        // Close modal on click outside
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) { // Only close if clicking the backdrop, not content
+            closeModal();
+            document.removeEventListener('keydown', handleEscape); // Clean up
+          }
         });
+
+        // Focus management: Focus on the close button when modal opens
+        modal.querySelector('.close-icon').focus();
       };
 
       questionMessage.addEventListener('click', showTooltipModal);
       questionMessage.appendChild(tooltipIcon);
     }
+    questionMessage.setAttribute('tabindex', '0'); // Make question message focusable
 
     chatBox.appendChild(questionMessage);
 
@@ -210,7 +215,7 @@ const resumeNo = document.getElementById("resume-no");
       const answerBubble = document.createElement("div");
       answerBubble.className = "answer-bubble fade-in";
       answerBubble.textContent = option.textContent;
-      answerBubble.style.animationDelay = `${0.3 + index * 0.1}s`;
+      answerBubble.style.animationDelay = `${0.1 + index * 0.1}s`;
 
       answerBubble.addEventListener("click", () => {
         if (answered) return;
@@ -233,31 +238,28 @@ const resumeNo = document.getElementById("resume-no");
         editButton.className = "edit-button";
         editButton.innerHTML = '<i class="fas fa-pen" title="Edit"></i>';
         editButton.addEventListener("click", () => {
-          confirmationDialog.classList.remove("hidden");
-          currentEditQuestionId = questionId;
+          showConfirmationDialog(questionId);
         });
         answerContainer.appendChild(editButton);
 
-        // Process next question
-        setTimeout(() => {
-          const selectedOptionId = option.getAttribute("id");
-          
-          // Find the next question based on the selected option
-          const nextNode = question.querySelector(`nextQuestions > next[optionId="${selectedOptionId}"]`);
-          // Find a default next question if no specific one exists for the selected option
-          const defaultNextNode = question.querySelector('nextQuestions > next:not([optionId])');
-          
-          // Use the specific next question ID, or fall back to the default
-          const nextId = nextNode?.getAttribute("questionId") || defaultNextNode?.getAttribute("questionId");
+        // Process next question immediately
+        const selectedOptionId = option.getAttribute("id");
+        
+        // Find the next question based on the selected option
+        const nextNode = question.querySelector(`nextQuestions > next[optionId="${selectedOptionId}"]`);
+        // Find a default next question if no specific one exists for the selected option
+        const defaultNextNode = question.querySelector('nextQuestions > next:not([optionId])');
+        
+        // Use the specific next question ID, or fall back to the default
+        const nextId = nextNode?.getAttribute("questionId") || defaultNextNode?.getAttribute("questionId");
 
-          scrollToBottom();
-          if (nextId) {
-            displayQuestion(xmlDoc, nextId);
-          } else {
-            evaluateDependencies();
-            displayResults();
-          }
-        }, 400); // Delay to match bubble animation
+        scrollToBottom();
+        if (nextId) {
+          displayQuestion(xmlDoc, nextId);
+        } else {
+          evaluateDependencies();
+          displayResults();
+        }
       });
 
       answerContainer.appendChild(answerBubble);
@@ -300,8 +302,7 @@ const resumeNo = document.getElementById("resume-no");
       editButton.className = "edit-button";
       editButton.innerHTML = '<i class="fas fa-pen" title="Edit"></i>';
       editButton.addEventListener("click", () => {
-        confirmationDialog.classList.remove("hidden");
-        currentEditQuestionId = answer.questionId;
+        showConfirmationDialog(answer.questionId);
       });
 
       answerContainer.appendChild(answerBubble);
@@ -315,6 +316,82 @@ const resumeNo = document.getElementById("resume-no");
     setTimeout(() => {
       scrollToBottom();
     }, 100);
+  }
+
+  function showConfirmationDialog(questionId) {
+    currentEditQuestionId = questionId;
+
+    const dialog = document.createElement('div');
+    dialog.id = 'confirmation-dialog';
+    dialog.style.opacity = '0'; // Start transparent for transition
+    dialog.innerHTML = `
+      <div class="dialog-content">
+        <p>Editing this answer will remove all following answers and restart from this point. Do you want to continue?</p>
+        <button id="confirm-edit">Yes</button>
+        <button id="cancel-edit">No</button>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    // Trigger fade-in
+    requestAnimationFrame(() => { dialog.style.opacity = '1'; });
+
+    const closeDialog = () => {
+      dialog.style.opacity = '0';
+      // Remove from DOM after transition
+      dialog.addEventListener('transitionend', () => dialog.remove(), { once: true });
+      currentEditQuestionId = null;
+    };
+
+    dialog.querySelector('#confirm-edit').addEventListener('click', () => {
+      if (currentEditQuestionId !== null) {
+        const index = userAnswers.findIndex(ans => ans.questionId === currentEditQuestionId);
+        if (index !== -1) {
+          userAnswers = userAnswers.slice(0, index);
+          chatBox.innerHTML = "";
+          recommendations = [];
+          documents = new Set();
+          setCookie("savedAnswers", JSON.stringify(userAnswers), 30);
+          displayAllPreviousAnswers();
+          displayQuestion(xmlDoc, currentEditQuestionId);
+        }
+      }
+      closeDialog();
+    });
+
+    dialog.querySelector('#cancel-edit').addEventListener('click', closeDialog);
+  }
+
+  function showResumeDialog() {
+    const dialog = document.createElement('div');
+    dialog.id = 'resume-dialog';
+    dialog.style.opacity = '0'; // Start transparent for transition
+    dialog.innerHTML = `
+      <div class="dialog-content">
+        <p>We found your previous session. Would you like to continue where you left off?</p>
+        <button id="resume-yes">Continue</button>
+        <button id="resume-no">Start Over</button>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    // Trigger fade-in
+    requestAnimationFrame(() => { dialog.style.opacity = '1'; });
+
+    const closeDialog = () => {
+      dialog.style.opacity = '0';
+      dialog.addEventListener('transitionend', dialog.remove, { once: true });
+    };
+
+    dialog.querySelector('#resume-yes').addEventListener('click', () => {
+      handleResume(true);
+      closeDialog();
+    });
+
+    dialog.querySelector('#resume-no').addEventListener('click', () => {
+      handleResume(false);
+      closeDialog();
+    });
   }
 
   function evaluateDependencies() {

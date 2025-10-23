@@ -4,7 +4,48 @@
 
   <question id="1">
     <text>Hey there 👋! First things first—what brings you to Germany?</text>
-    <tooltip>Let us know your main reason to find the perfect visa for you!</tooltip>
+    <tooltip>
+      <h2>Welcome to the Visa Helper Bot!</h2>
+      <br/><br/>
+      Here's a quick guide on how to use this tool to find the right information for your journey to Germany. This modal is designed to hold a lot of text, just like this, and will become scrollable if the content exceeds the screen height.
+      <br/><br/>
+      <strong>How It Works:</strong>
+      <br/>
+      This is an interactive chat that will guide you through a series of questions. Your answers will help us determine the most likely visa category for your situation and provide a preliminary list of required documents.
+      <br/><br/>
+      <strong>Navigating the Chat:</strong>
+      <ul>
+        <li><b>Answering Questions:</b> Simply click on the option bubble that best fits your answer. Once you select an answer, it will be highlighted, and the next question will appear automatically.</li>
+        <li><b>Editing Answers:</b> Made a mistake? No problem! Next to each of your selected answers, you'll see a small pencil icon (it looks like this: ✎). Clicking this will allow you to change your answer. Please note that changing an answer will reset all the questions that followed it.</li>
+        <li><b>Session Resumption:</b> If you close the window and come back later, we'll remember where you left off! A dialog will ask if you want to continue your session or start over.</li>
+      </ul>
+      <br/>
+      <strong>Understanding the Results:</strong>
+      <br/>
+      Once you've answered all the questions, you'll be taken to a results page. This page will show you the recommended visa category based on your answers and a checklist of documents you'll likely need to prepare.
+      <br/><br/>
+      <strong>Frequently Asked Questions (FAQ):</strong>
+      <ul>
+          <li><b>Is this service free?</b> Yes, this tool is completely free to use. Our goal is to provide clear, accessible information.</li>
+          <li><b>Is this official legal advice?</b> No. This tool provides guidance based on publicly available information from German immigration authorities. It is not a substitute for legal advice from a qualified immigration lawyer or official information from a German embassy or consulate.</li>
+          <li><b>What happens to my data?</b> Your answers are stored temporarily in a cookie on your browser to allow for session resumption. We do not store your data on our servers. Clearing your cookies will erase your session.</li>
+      </ul>
+      <br/>
+      <strong>Disclaimer:</strong>
+      <br/>
+      Visa requirements can change and depend on your specific nationality and individual circumstances. The information provided by this bot is for informational purposes only. Always verify the requirements with the official German mission (embassy or consulate) in your country of residence before making any travel plans or submitting an application. We are not liable for any inaccuracies or for decisions made based on the information provided here.
+      <br/><br/>
+      <strong>Further Resources:</strong>
+      <br/>
+      For official information, please always refer to these primary sources:
+      <ul>
+        <li>The German Federal Foreign Office ("Auswärtiges Amt").</li>
+        <li>The website of the German embassy or consulate responsible for your region.</li>
+        <li>The "Make it in Germany" official government portal for qualified professionals.</li>
+      </ul>
+      <br/><br/>
+      Ready to start? Just close this window and select your first answer!
+    </tooltip>
     <options>
       <option id="1">🎓 Studying</option>
       <option id="2">💼 Working</option>
@@ -49,7 +90,7 @@
 
   <question id="4">
     <text>Have you ever visited Germany or the Schengen area before?</text>
-    <tooltip> The Schengen are includes all EU countries except Ireland, plus Norway, Iceland, Switzerland, and Liechtenstein.</tooltip>
+    <tooltip>The Schengen area includes all EU countries except Ireland.<br/><br/>It also includes Norway, Iceland, Switzerland, and Liechtenstein.</tooltip>
     <options>
       <option id="1">✈️ Yes, for less than 6 months!</option>
       <option id="2">🛫 Yes, for more than 6 months!</option>
