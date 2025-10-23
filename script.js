@@ -12,19 +12,49 @@ document.addEventListener("DOMContentLoaded", () => {
   let documents = new Set();
   let currentEditQuestionId = null;
 
+  // --- Global Keyboard Navigation ---
+  document.addEventListener('keydown', (event) => {
+    const isForwardNav = event.key === 'ArrowDown' || event.key === 'ArrowRight';
+    const isBackwardNav = event.key === 'ArrowUp' || event.key === 'ArrowLeft';
+
+    if (!isForwardNav && !isBackwardNav) {
+      return; // Not an arrow key we care about
+    }
+
+    // Define what is considered a focusable item in the chat
+    const focusableSelector = '.chat-message[tabindex="0"], .answer-bubble[tabindex="0"], .edit-button';
+    const focusableItems = Array.from(document.querySelectorAll(focusableSelector));
+
+    const activeElement = document.activeElement;
+    const currentIndex = focusableItems.findIndex(item => item === activeElement);
+
+    // If focus is not within our chat items, do nothing
+    if (currentIndex === -1) {
+      return;
+    }
+
+    event.preventDefault(); // Prevent default page scrolling
+
+    let nextIndex;
+    if (isForwardNav) {
+      // Move to the next item, loop to start if at the end
+      nextIndex = (currentIndex + 1) % focusableItems.length;
+    } else { // isBackwardNav
+      // Move to the previous item, loop to end if at the start
+      nextIndex = (currentIndex - 1 + focusableItems.length) % focusableItems.length;
+    }
+    focusableItems[nextIndex].focus();
+  });
+
   // Smooth scroll to bottom function with padding
   function scrollToBottom() {
-    const chatBox = document.getElementById("chat-box");
-    if (!chatBox) return;
-
-    // Add extra padding to keep content higher from the bottom
-    const bottomPadding = 20;
-    const targetScroll = chatBox.scrollHeight - chatBox.clientHeight + bottomPadding;
-    
-    // Use smooth scrolling
-    chatBox.scrollTo({
-      top: targetScroll,
-      behavior: 'smooth'
+    // In a flex-end layout, setting scrollTop to scrollHeight is all we need.
+    // The browser handles scrolling to the bottom of the content.
+    requestAnimationFrame(() => {
+        const chatBox = document.getElementById("chat-box");
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     });
   }
 
@@ -167,6 +197,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.body.appendChild(modal);
 
+        const modalContent = modal.querySelector('.tooltip-modal-content');
+
+        // Check if the modal content is scrollable
+        // If scrollHeight is greater than clientHeight, it means the content overflows.
+        if (modalContent.scrollHeight > modalContent.clientHeight) {
+          modalContent.classList.add('is-scrollable');
+        }
+
         const closeModal = () => {
           modal.remove();
           // Restore focus to the element that opened the modal (if needed)
@@ -198,7 +236,14 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.querySelector('.close-icon').focus();
       };
 
+      const showTooltipWithKeyboard = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            showTooltipModal();
+        }
+      };
       questionMessage.addEventListener('click', showTooltipModal);
+      questionMessage.addEventListener('keydown', showTooltipWithKeyboard);
       questionMessage.appendChild(tooltipIcon);
     }
     questionMessage.setAttribute('tabindex', '0'); // Make question message focusable
@@ -216,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       answerBubble.className = "answer-bubble fade-in";
       answerBubble.textContent = option.textContent;
       answerBubble.style.animationDelay = `${0.1 + index * 0.1}s`;
+      answerBubble.setAttribute('tabindex', '0'); // Make bubble focusable
 
       answerBubble.addEventListener("click", () => {
         if (answered) return;
@@ -231,12 +277,13 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
         answerBubble.classList.add('selected');
-        answerBubble.style.pointerEvents = 'none';
+        // Keep the bubble focusable for accessibility
 
         // Add edit button
         const editButton = document.createElement("button");
         editButton.className = "edit-button";
         editButton.innerHTML = '<i class="fas fa-pen" title="Edit"></i>';
+        editButton.setAttribute('aria-label', 'Edit this answer');
         editButton.addEventListener("click", () => {
           showConfirmationDialog(questionId);
         });
@@ -262,20 +309,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
+      answerBubble.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault(); // Prevent default form submission or other behavior
+          answerBubble.click(); // Trigger the click handler
+        }
+      });
+
       answerContainer.appendChild(answerBubble);
     });
 
     chatBox.appendChild(answerContainer);
     
     // First scroll immediately to prevent jarring layout shifts
-    requestAnimationFrame(() => {
-      scrollToBottom();
-      
-      // Then scroll smoothly after a brief delay to account for layout
-      setTimeout(() => {
-        scrollToBottom();
-      }, 100);
-    });
+    scrollToBottom();
   }
 
   function displayAllPreviousAnswers() {
@@ -296,11 +343,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const answerBubble = document.createElement("div");
       answerBubble.className = "answer-bubble selected";
       answerBubble.textContent = selectedOption.textContent;
-      answerBubble.style.pointerEvents = "none";
+      answerBubble.setAttribute('tabindex', '0'); // Ensure it's focusable
 
       const editButton = document.createElement("button");
       editButton.className = "edit-button";
       editButton.innerHTML = '<i class="fas fa-pen" title="Edit"></i>';
+      editButton.setAttribute('aria-label', 'Edit this answer');
       editButton.addEventListener("click", () => {
         showConfirmationDialog(answer.questionId);
       });
@@ -313,9 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     
     // Scroll to bottom after displaying all previous answers
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
+    scrollToBottom();
   }
 
   function showConfirmationDialog(questionId) {

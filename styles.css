@@ -13,8 +13,8 @@ body {
   display: flex;
   justify-content: center;
   padding: 20px;
-  height: 100vh;
-  overflow: hidden;
+  height: calc(100vh - 40px); /* Adjust height to account for padding */
+  box-sizing: border-box; /* Include padding in height calculation */
 }
 
 /* === Chat-Container === */
@@ -25,7 +25,7 @@ body {
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  height: 100%;
+  height: 100%; /* This will now correctly fill the adjusted body height */
   display: flex;
   flex-direction: column;
 }
@@ -34,6 +34,7 @@ body {
 #chat-box {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start; /* Start from top on desktop */
   gap: 14px;
   flex: 1;
   overflow-y: auto;
@@ -166,12 +167,13 @@ body {
   text-align: left;        /* Align text to the left for better readability of long content */
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   animation: scaleIn 0.3s cubic-bezier(0.42, 0, 0.58, 1);
+  position: relative;      /* Establish positioning context for the close button */
 }
 
 .tooltip-modal-content .close-icon {
   position: absolute;
-  top: 18px; /* Moved slightly down */
-  right: 18px; /* Moved slightly left */
+  top: 16px;
+  right: 16px;
   background: #f1f1f1; /* Add a light grey background */
   border: none;
   font-size: 22px; /* Adjust size for the circle */
@@ -183,7 +185,7 @@ body {
   width: 32px; /* Set dimensions for the circle */
   height: 32px;
   border-radius: 50%; /* Make it a circle */
-  display: flex; /* Center the 'x' icon */
+  display: none; /* Hide by default, will be shown via JS */
   align-items: center;
   justify-content: center;
 }
@@ -191,6 +193,17 @@ body {
 .tooltip-modal-content .close-icon:hover {
   background-color: #e0e0e0; /* Darken background on hover */
   color: #000; /* Make 'x' black on hover */
+}
+
+/* New class to show the close icon when the modal is scrollable */
+.tooltip-modal-content.is-scrollable .close-icon {
+  display: flex;
+}
+
+.tooltip-modal-content p:first-of-type {
+  /* Add padding to the right to prevent text from flowing under the close button */
+  padding-right: 30px;
+  margin-top: 0;
 }
 
 
@@ -301,6 +314,12 @@ body {
   font-weight: 500;
 }
 
+.answer-bubble:focus-visible {
+  outline: 2px solid #005bb5;
+  outline-offset: 2px;
+  background-color: #eef5ff;
+}
+
 .answer-bubble.fade-in {
   opacity: 0;
   animation: slideInFromBottom 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
@@ -308,13 +327,12 @@ body {
 }
 
 .answer-bubble:hover {
-  background-color: #d6d6db;
+  background-color: #eef5ff; /* A light blue, more cohesive with the brand color */
 }
 
 .answer-bubble.selected {
   background-color: #007aff;
   color: white;
-  pointer-events: none;
 }
 
 .answer-container {
@@ -344,6 +362,12 @@ body {
 
 .edit-button:hover i {
   color: #000;
+}
+
+.edit-button:focus-visible {
+  outline: 2px solid #005bb5;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 
@@ -526,11 +550,12 @@ body {
   #chat-container {
     border-radius: 16px;
     padding: 16px;
-    height: calc(100vh - 20px);
+    height: 100%;
   }
   
   #chat-box {
     gap: 12px;
+    justify-content: flex-end; /* Start from bottom on mobile */
     /* Ensure proper scrolling on mobile */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
