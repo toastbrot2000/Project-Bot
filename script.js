@@ -1,4 +1,5 @@
 let xmlDoc;
+let activeTooltipNode = null; // Keep track of the currently open tooltip content
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Viewport Height Fix for Mobile Browsers ---
@@ -13,7 +14,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // And reset it on window resize (e.g., orientation change)
   window.addEventListener('resize', setViewportHeight);
 
+  // --- Responsive Tooltip Handling ---
+  const handleResize = () => {
+    const sidePanel = document.getElementById('tooltip-side-panel');
+    const modal = document.querySelector('.tooltip-modal');
+
+    // Check if the side panel is open and if the screen is now too small for it
+    if (sidePanel && !window.matchMedia('(min-width: 1025px)').matches) {
+      // Trigger the closing animation and remove the panel
+      sidePanel.classList.add('is-hiding');
+      sidePanel.addEventListener('animationend', () => {
+        sidePanel.remove();
+        activeTooltipNode = null; // Clear the active tooltip
+      }, { once: true });
+    }
+
+    // Check if a modal is open and if the screen is now large enough for the side panel
+    if (modal && window.matchMedia('(min-width: 1025px)').matches) {
+      modal.remove(); // Close the modal
+      if (activeTooltipNode) {
+        // Re-open as a side panel. We need to find the function's context.
+        showTooltipAsSidePanel(activeTooltipNode);
+      }
+    }
+  };
+
+  // Listen for window resize events to handle the tooltip panel
+  window.addEventListener('resize', handleResize);
+
   const chatBox = document.getElementById("chat-box");
+  const chatContainer = document.getElementById("chat-container");
   const resultsPage = document.getElementById("results-page");
   const recommendationsContainer = document.getElementById("recommendations-container");
   const documentsContainer = document.getElementById("documents-container");
@@ -101,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function restartApp() {
-    document.getElementById("chat-container").classList.remove("hidden");
+    chatContainer.classList.remove("hidden");
     resultsPage.classList.add("hidden");
     chatBox.innerHTML = "";
     recommendationsContainer.innerHTML = "";
@@ -174,6 +204,131 @@ document.addEventListener("DOMContentLoaded", () => {
       }).join('');
     }
 
+  function showTooltipAsModal(node, focusReturnElement) {
+    activeTooltipNode = node; // Set the active tooltip
+    const modal = document.createElement('div');
+    modal.className = 'tooltip-modal';
+    modal.innerHTML = `
+      <div class="tooltip-modal-content">
+        <button class="close-icon">&times;</button>
+        ${getInnerXml(node)}
+        <div class="tooltip-modal-footer">
+          <button class="close-tooltip">Got it</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.tooltip-modal-content');
+
+    // Check if the modal content is scrollable
+    if (modalContent.scrollHeight > modalContent.clientHeight) {
+      modalContent.classList.add('is-scrollable');
+    }
+
+    const closeModal = () => {
+      modal.remove();
+      activeTooltipNode = null; // Clear active tooltip on close
+      if (focusReturnElement) {
+        focusReturnElement.focus();
+      }
+    };
+
+    modal.querySelector('.close-tooltip').addEventListener('click', closeModal);
+    modal.querySelector('.close-icon').addEventListener('click', closeModal);
+
+    const handleModalKeydown = (event) => {
+      if (event.key === 'Escape' || event.key === 'Enter') {
+        closeModal();
+        document.removeEventListener('keydown', handleModalKeydown);
+      }
+    };
+    document.addEventListener('keydown', handleModalKeydown);
+
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModal();
+        document.removeEventListener('keydown', handleModalKeydown);
+      }
+    });
+
+    modal.querySelector('.close-icon').focus();
+  }
+
+  function showTooltipAsSidePanel(node, focusReturnElement) {
+    activeTooltipNode = node; // Set the active tooltip
+    const existingPanel = document.getElementById('tooltip-side-panel');
+    if (existingPanel) {
+      existingPanel.remove();
+    }
+
+    const panel = document.createElement('div');
+    panel.id = 'tooltip-side-panel';
+    
+    // Create a temporary container to parse the tooltip content
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = getInnerXml(node);
+
+    // Try to find an h2 to use as a title
+    const titleElement = tempContainer.querySelector('h2');
+    let title = "More Information"; // Default title
+    if (titleElement) {
+      title = titleElement.innerHTML;
+      titleElement.remove(); // Remove it from the content to avoid duplication
+    }
+    const content = tempContainer.innerHTML;
+
+    panel.innerHTML = `
+      <div class="tooltip-side-panel-header">
+        <h2>${title}</h2>
+        <button class="close-icon">&times;</button>
+      </div>
+      <div class="tooltip-side-panel-content">${content}</div>
+    `;
+
+    document.getElementById('main-content').appendChild(panel);
+
+    const closePanel = () => {
+      // Remove inline style to prevent it from affecting other tooltips
+      panel.style.marginTop = '';
+      panel.style.maxHeight = '';
+
+      panel.classList.add('is-hiding');
+      panel.addEventListener('animationend', () => {
+        panel.remove();
+        activeTooltipNode = null; // Clear active tooltip on close
+        document.removeEventListener('keydown', handlePanelKeydown); // Clean up listener
+        if (focusReturnElement) focusReturnElement.focus();
+      }, { once: true });
+    };
+
+    // --- Dynamic Vertical Positioning ---
+    // Calculate the top position of the icon relative to the main content area
+    const mainContentRect = document.getElementById('main-content').getBoundingClientRect();
+    const iconRect = focusReturnElement.getBoundingClientRect();
+    const marginTop = iconRect.top - mainContentRect.top;
+
+    // Set initial max-height to allow for measurement
+    panel.style.maxHeight = `${mainContentRect.height}px`;
+
+    // Check if the panel with its new margin top would overflow the container
+    if (panel.offsetHeight + marginTop < mainContentRect.height) {
+      // If it fits, apply the margin
+      panel.style.marginTop = `${marginTop}px`;
+      panel.style.maxHeight = `${mainContentRect.height - marginTop}px`;
+    }
+
+    panel.querySelector('.close-icon').addEventListener('click', closePanel);
+
+    const handlePanelKeydown = (event) => {
+      if (event.key === 'Escape') {
+        closePanel();
+      }
+    };
+    document.addEventListener('keydown', handlePanelKeydown);
+  }
+
   function displayQuestion(xmlDoc, questionId) {
     const question = xmlDoc.querySelector(`question[id="${questionId}"]`);
     if (!question) return;
@@ -182,87 +337,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const tooltipNode = question.querySelector("tooltip");
     const options = question.querySelectorAll("option");
 
-    const questionMessage = document.createElement("div");
-    questionMessage.className = "chat-message fade-in";
-    questionMessage.textContent = text;
+    const questionMessageContainer = document.createElement("div");
+    questionMessageContainer.className = "chat-message fade-in";
+    questionMessageContainer.textContent = text;
 
     if (tooltipNode) {
       const tooltipIcon = document.createElement("span");
       tooltipIcon.className = "tooltip-icon";
-      tooltipIcon.style.color = "#888";
       tooltipIcon.innerHTML = `<i class="fas fa-question-circle"></i>`;
+      tooltipIcon.setAttribute('tabindex', '0');
+      tooltipIcon.setAttribute('role', 'button');
+      tooltipIcon.setAttribute('aria-label', 'Show more information');
+      questionMessageContainer.classList.add("has-tooltip");
 
-      // Make the entire message clickable
-      questionMessage.style.cursor = "pointer";
-      questionMessage.classList.add("has-tooltip");
-
-      const showTooltipModal = () => {
-        const modal = document.createElement('div');
-        modal.className = 'tooltip-modal';
-        modal.innerHTML = `
-          <div class="tooltip-modal-content">
-            <button class="close-icon">&times;</button>
-            <p>${getInnerXml(tooltipNode)}</p>
-            <div class="tooltip-modal-footer">
-              <button class="close-tooltip">Got it</button>
-            </div>
-          </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        const modalContent = modal.querySelector('.tooltip-modal-content');
-
-        // Check if the modal content is scrollable
-        // If scrollHeight is greater than clientHeight, it means the content overflows.
-        if (modalContent.scrollHeight > modalContent.clientHeight) {
-          modalContent.classList.add('is-scrollable');
+      const showTooltip = () => {
+        // Use matchMedia to decide which tooltip to show
+        if (window.matchMedia('(min-width: 1025px)').matches) {
+          showTooltipAsSidePanel(tooltipNode, tooltipIcon);
+        } else {
+          showTooltipAsModal(tooltipNode, tooltipIcon);
         }
-
-        const closeModal = () => {
-          modal.remove();
-          // Restore focus to the element that opened the modal (if needed)
-          // For now, it's the question message itself.
-          questionMessage.focus();
-        };
-
-        modal.querySelector('.close-tooltip').addEventListener('click', closeModal);
-        modal.querySelector('.close-icon').addEventListener('click', closeModal);
-
-        // Close modal on Escape key
-        const handleEscape = (event) => {
-          if (event.key === 'Escape') {
-            closeModal();
-            document.removeEventListener('keydown', handleEscape);
-          }
-        };
-        document.addEventListener('keydown', handleEscape);
-
-        // Close modal on click outside
-        modal.addEventListener('click', (event) => {
-          if (event.target === modal) { // Only close if clicking the backdrop, not content
-            closeModal();
-            document.removeEventListener('keydown', handleEscape); // Clean up
-          }
-        });
-
-        // Focus management: Focus on the close button when modal opens
-        modal.querySelector('.close-icon').focus();
       };
 
       const showTooltipWithKeyboard = (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            showTooltipModal();
-        }
+            showTooltip();
+        } 
       };
-      questionMessage.addEventListener('click', showTooltipModal);
-      questionMessage.addEventListener('keydown', showTooltipWithKeyboard);
-      questionMessage.appendChild(tooltipIcon);
+      tooltipIcon.addEventListener('click', showTooltip);
+      tooltipIcon.addEventListener('keydown', showTooltipWithKeyboard);
+      questionMessageContainer.appendChild(tooltipIcon);
     }
-    questionMessage.setAttribute('tabindex', '0'); // Make question message focusable
 
-    chatBox.appendChild(questionMessage);
+    chatBox.appendChild(questionMessageContainer);
 
     const answerContainer = document.createElement("div");
     answerContainer.className = "answer-container fade-in";
@@ -400,6 +508,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dialog.style.opacity = '0';
       // Remove from DOM after transition
       dialog.addEventListener('transitionend', () => dialog.remove(), { once: true });
+      document.removeEventListener('keydown', handleConfirmationKeydown); // Remove listener
       currentEditQuestionId = null;
     };
 
@@ -420,6 +529,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     dialog.querySelector('#cancel-edit').addEventListener('click', closeDialog);
+
+    // Close dialog on Escape or Enter key
+    const handleConfirmationKeydown = (event) => {
+      if (event.key === 'Escape' || event.key === 'Enter') {
+        closeDialog();
+      }
+    };
+    document.addEventListener('keydown', handleConfirmationKeydown);
   }
 
   function showResumeDialog() {
@@ -441,6 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeDialog = () => {
       dialog.style.opacity = '0';
       dialog.addEventListener('transitionend', dialog.remove, { once: true });
+      document.removeEventListener('keydown', handleResumeKeydown); // Remove listener
     };
 
     dialog.querySelector('#resume-yes').addEventListener('click', () => {
@@ -452,8 +570,40 @@ document.addEventListener("DOMContentLoaded", () => {
       handleResume(false);
       closeDialog();
     });
+
+    // Close dialog on Escape or Enter key
+    const handleResumeKeydown = (event) => {
+      if (event.key === 'Escape' || event.key === 'Enter') {
+        closeDialog();
+      }
+    };
+    document.addEventListener('keydown', handleResumeKeydown);
   }
 
+  function closeAllTooltips(callback) {
+    // Close side panel if it exists
+    const sidePanel = document.getElementById('tooltip-side-panel');
+    const modal = document.querySelector('.tooltip-modal');
+
+    if (sidePanel) {
+      // Trigger the closing animation and remove after it finishes
+      sidePanel.classList.add('is-hiding');
+      sidePanel.addEventListener('animationend', () => {
+        sidePanel.remove();
+        activeTooltipNode = null; // Clear active tooltip
+        if (callback) callback();
+      }, { once: true });
+    } else {
+      // If no side panel, execute callback immediately
+      if (callback) callback();
+    }
+
+    // Close modal if it exists
+    if (modal) {
+      modal.remove();
+      activeTooltipNode = null; // Clear active tooltip
+    }
+  }
   function evaluateDependencies() {
     const dependencies = xmlDoc.querySelector("dependencies");
 
@@ -483,7 +633,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function displayResults() {
-    document.getElementById("chat-container").classList.add("hidden");
+    // Close any open tooltips (side panel or modal) to prevent layout issues.
+    closeAllTooltips();
+
+    chatContainer.classList.add("hidden");
     resultsPage.classList.remove("hidden");
     const documentsSection = document.getElementById("documents-section");
 
@@ -527,7 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h3>We couldn’t match your case with a visa category</h3>
         <p>Please contact the German embassy or a visa advisor for further assistance.</p>
       `;
-      recommendationsContainer.appendChild(message);
+      recommendationsContainer.appendChild(message); // Add this line
       documentsContainer.innerHTML = "";
       documentsSection.classList.add("hidden");
     }

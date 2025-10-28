@@ -6,7 +6,6 @@
     <text>Hey there 👋! First things first—what brings you to Germany?</text>
     <tooltip>
       <h2>Welcome to the Visa Helper Bot!</h2>
-      <br/><br/>
       Here's a quick guide on how to use this tool to find the right information for your journey to Germany. This modal is designed to hold a lot of text, just like this, and will become scrollable if the content exceeds the screen height.
       <br/><br/>
       <strong>How It Works:</strong>

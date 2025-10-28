@@ -12,9 +12,20 @@ body {
   color: #333;
   display: flex;
   justify-content: center;
+  align-items: flex-start; /* Align items to the top */
   padding: 20px;
   height: calc(calc(var(--vh, 1vh) * 100) - 40px); /* Adjust height to account for padding, using JS-calculated vh */
   box-sizing: border-box; /* Include padding in height calculation */
+}
+
+/* New container to wrap chat and side panel */
+#main-content {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 1600px; /* Increase max-width for wider screens */
+  gap: 24px;
+  height: 100%;
 }
 
 /* === Chat-Container === */
@@ -25,8 +36,9 @@ body {
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  height: 100%; /* This will now correctly fill the adjusted body height */
+  height: 100%;
   display: flex;
+  flex-shrink: 0; /* Prevent chat container from shrinking */
   flex-direction: column;
 }
 
@@ -198,6 +210,78 @@ body {
   color: #000; /* Make 'x' black on hover */
 }
 
+/* === Desktop Side Tooltip Panel === */
+#tooltip-side-panel {
+  flex: 0 1 auto; /* Don't grow, shrink if needed, basis is auto */
+  min-width: 380px; /* Set a minimum width for consistency */
+  max-width: 500px; /* Set a max-width for readability */
+  display: flex;
+  align-self: flex-start; /* Align to the top of the flex container */
+  flex-direction: column;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  animation: slideInFromRight 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+  overflow: hidden; /* Prevent content from spilling during animation */
+}
+
+#tooltip-side-panel.is-hiding {
+  animation: slideOutToRight 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+  min-width: 0; /* Allow shrinking to 0 during animation */
+}
+
+.tooltip-side-panel-header {
+  display: flex;
+  justify-content: space-between; /* Align title left, button right */
+  align-items: center;
+  margin-bottom: 16px; /* Add some space below the header */
+}
+
+.tooltip-side-panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #202124;
+}
+
+.tooltip-side-panel-header .close-icon {
+  /* Re-use styles from modal close icon */
+  position: static; /* Overrides absolute positioning from modal style */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tooltip-side-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 15px;
+  padding-right: 8px; /* Add some padding for the scrollbar */
+  min-height: 0; /* Prevents flexbox overflow issues */
+  line-height: 1.6;
+}
+
+.tooltip-side-panel-content strong {
+  color: #007aff;
+}
+.tooltip-side-panel-content p:first-child {
+  margin-top: 0;
+}
+
+
+
 /* New class to show the close icon when the modal is scrollable */
 .tooltip-modal-content.is-scrollable .close-icon {
   display: flex;
@@ -219,7 +303,7 @@ body {
 }
 
 .tooltip-modal-content strong {
-  color: #007aff; /* Highlight strong text */
+  color: #007aff; 
 }
 
 .tooltip-modal-content ul {
@@ -260,6 +344,7 @@ body {
   animation: fadeInWithBlur 0.3s cubic-bezier(0.42, 0, 0.58, 1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease; /* Add this line */
 }
 
 /* New class for fade-out transition on dialogs */
@@ -716,6 +801,20 @@ body {
   }
 }
 
+@keyframes slideOutToRight {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;    
+    max-width: 600px; /* Corresponds to initial max-width */
+    padding: 24px;
+  }
+  100% {
+    transform: translateX(20px) scale(0.95);
+    opacity: 0;
+    width: 0;
+    padding: 0;
+  }
+}
 @keyframes selectBubble {
   0% {
     transform: scale(1);

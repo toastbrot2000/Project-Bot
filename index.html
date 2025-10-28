@@ -10,31 +10,33 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-  <div id="chat-container">
-    <div id="chat-box"></div>
-  </div>
-  
-  <div id="results-page" class="hidden">
-    <div class="results-content">
-      <div id="recommendations-container">
-        <!-- Visa recommendation will be injected here -->
-      </div>
+  <div id="main-content">
+    <div id="chat-container">
+      <div id="chat-box"></div>
+    </div>
 
-      <!-- Documents section will be injected here only if documents exist -->
-      <div id="documents-section" class="hidden">
-        <div class="documents-card">
-          <div class="card-header">
-            <h3>Required Documents</h3>
-          </div>
-          <div id="documents-container">
-            <!-- Document checklist will be injected here -->
+    <div id="results-page" class="hidden">
+      <div class="results-content">
+        <div id="recommendations-container">
+          <!-- Visa recommendation will be injected here -->
+        </div>
+  
+        <!-- Documents section will be injected here only if documents exist -->
+        <div id="documents-section" class="hidden">
+          <div class="documents-card">
+            <div class="card-header">
+              <h3>Required Documents</h3>
+            </div>
+            <div id="documents-container">
+              <!-- Document checklist will be injected here -->
+            </div>
           </div>
         </div>
+  
+        <button id="restart-button" class="material-button">
+          Start New Assessment
+        </button>
       </div>
-
-      <button id="restart-button" class="material-button">
-        Start New Assessment
-      </button>
     </div>
   </div>
   
