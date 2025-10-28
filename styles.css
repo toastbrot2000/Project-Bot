@@ -273,7 +273,7 @@ body {
   line-height: 1.6;
 }
 
-.tooltip-side-panel-content strong {
+.tooltip-side-panel-content h3 {
   color: #007aff;
 }
 .tooltip-side-panel-content p:first-child {
@@ -302,7 +302,7 @@ body {
   color: #333;
 }
 
-.tooltip-modal-content strong {
+.tooltip-modal-content h3 {
   color: #007aff; 
 }
 
@@ -643,7 +643,8 @@ body {
   #chat-container {
     border-radius: 16px;
     padding: 16px;
-    height: 100%;
+    flex: 1; /* Allow chat container to fill available space */
+    height: auto; /* Let flexbox determine the height */
   }
   
   #chat-box {

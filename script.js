@@ -1,5 +1,8 @@
 let xmlDoc;
-let activeTooltipNode = null; // Keep track of the currently open tooltip content
+let activeTooltipXmlNode = null; // Keep track of the currently open tooltip XML node
+let activeTooltipTriggerElement = null; // Keep track of the DOM element that triggered the tooltip
+let strapiTooltips = new Map(); // To cache tooltips from Strapi
+let strapiDocuments = new Map(); // To cache documents from Strapi
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Viewport Height Fix for Mobile Browsers ---
@@ -23,18 +26,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sidePanel && !window.matchMedia('(min-width: 1025px)').matches) {
       // Trigger the closing animation and remove the panel
       sidePanel.classList.add('is-hiding');
-      sidePanel.addEventListener('animationend', () => {
+      sidePanel.addEventListener('animationend', () => { // Clear the active tooltip XML node
         sidePanel.remove();
-        activeTooltipNode = null; // Clear the active tooltip
+        activeTooltipXmlNode = null; // Clear the active tooltip XML node
+        activeTooltipTriggerElement = null; // Clear the active tooltip trigger element
       }, { once: true });
     }
 
     // Check if a modal is open and if the screen is now large enough for the side panel
-    if (modal && window.matchMedia('(min-width: 1025px)').matches) {
+    if (modal && window.matchMedia('(min-width: 1025px)').matches) { // Ensure both XML node and trigger element exist
       modal.remove(); // Close the modal
-      if (activeTooltipNode) {
-        // Re-open as a side panel. We need to find the function's context.
-        showTooltipAsSidePanel(activeTooltipNode);
+      if (activeTooltipXmlNode && activeTooltipTriggerElement) {
+        // Re-open as a side panel.
+        showTooltipAsSidePanel(activeTooltipXmlNode, activeTooltipTriggerElement);
       }
     }
   };
@@ -146,14 +150,106 @@ document.addEventListener("DOMContentLoaded", () => {
     startApp(xmlDoc);
   }
 
+  // --- Strapi Integration ---
+  const STRAPI_URL = "http://localhost:1337/api";
+
+  async function fetchStrapiTooltips() {
+    try {
+      const response = await fetch(`${STRAPI_URL}/tooltips`);
+      if (!response.ok) throw new Error('Failed to fetch tooltips');
+      const data = await response.json();
+      data.data.forEach(item => { // The API response is flat, so no .attributes
+        if (item.question_id && item.content) {
+          strapiTooltips.set(item.question_id, item.content);
+        }
+      });
+      console.log("✅ Strapi tooltips loaded:", strapiTooltips);
+
+    } catch (error) {
+      // More detailed error logging
+      console.error("❌ Error fetching tooltips from Strapi. Is the API endpoint '/api/tooltips' correct?", error);
+    }
+  }
+
+  async function fetchStrapiDocuments() {
+    try {
+      // Note: The API endpoint is 'visa-documents' as defined in Strapi
+      const response = await fetch(`${STRAPI_URL}/documents?populate=*`); // Corrected endpoint
+      if (!response.ok) throw new Error('Failed to fetch documents');
+      const data = await response.json();
+      data.data.forEach(item => {
+        const attributes = item.attributes;
+        // Use the unique documentId from Strapi which corresponds to strapiId in the XML
+        if (attributes && attributes.documentId && attributes.description) {
+          strapiDocuments.set(attributes.documentId, attributes.description);
+        }
+      });
+      console.log("✅ Strapi documents loaded:", strapiDocuments);
+
+    } catch (error) {
+      // More detailed error logging
+      console.error("❌ Error fetching documents from Strapi. Is the API endpoint '/api/documents' correct?", error);
+    }
+  }
+
+  // --- Strapi Rich Text to HTML Converter ---
+  function strapiRichTextToHtml(blocks) {
+    if (!blocks || !Array.isArray(blocks)) return '';
+  
+    const renderNode = (node) => {
+      let text = node.text.replace(/\n/g, '<br>');
+      if (node.bold) text = `<strong>${text}</strong>`;
+      if (node.italic) text = `<em>${text}</em>`;
+      if (node.underline) text = `<u>${text}</u>`;
+      if (node.strikethrough) text = `<s>${text}</s>`;
+      return text;
+    };
+  
+    let html = '';
+    blocks.forEach(block => {
+      switch (block.type) {
+        case 'paragraph':
+          html += `<p>${block.children.map(renderNode).join('')}</p>`;
+          break;
+        case 'heading':
+          html += `<h${block.level}>${block.children.map(renderNode).join('')}</h${block.level}>`;
+          break;
+        case 'list':
+          const tag = block.format === 'ordered' ? 'ol' : 'ul';
+          html += `<${tag}>`;
+          block.children.forEach(listItem => {
+            // Strapi list items can have nested children, so we recursively build the list item content.
+            const buildListItem = (item) => {
+              let content = '';
+              if (item.children) {
+                content += item.children.map(childNode => {
+                  if (childNode.type === 'list') { // Nested list
+                    return strapiRichTextToHtml([childNode]);
+                  }
+                  return renderNode(childNode);
+                }).join('');
+              }
+              return `<li>${content}</li>`;
+            };
+            html += buildListItem(listItem);
+          });
+          html += `</${tag}>`;
+          break;
+        default:
+          break;
+      }
+    });
+    return html;
+  }
   fetch("questions.xml")
     .then(response => response.ok ? response.text() : Promise.reject("Failed to load XML"))
-    .then(xmlText => {
+    .then(async (xmlText) => {
       xmlDoc = new DOMParser().parseFromString(xmlText, "application/xml");
+      await Promise.all([fetchStrapiTooltips(), fetchStrapiDocuments()]); // Fetch Strapi data before starting
       startApp(xmlDoc);
     })
     .catch(error => console.error("❌ Error loading XML:", error));
-
+  
     function startApp(xmlDoc) {
       resultsPage.classList.add("hidden");
       chatBox.innerHTML = "";
@@ -205,7 +301,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
   function showTooltipAsModal(node, focusReturnElement) {
-    activeTooltipNode = node; // Set the active tooltip
+    activeTooltipXmlNode = node; // Set the active tooltip XML node
+    activeTooltipTriggerElement = focusReturnElement; // Set the active tooltip trigger element
     const modal = document.createElement('div');
     modal.className = 'tooltip-modal';
     modal.innerHTML = `
@@ -229,7 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const closeModal = () => {
       modal.remove();
-      activeTooltipNode = null; // Clear active tooltip on close
+      activeTooltipXmlNode = null; // Clear active tooltip XML node on close
+      activeTooltipTriggerElement = null; // Clear active tooltip trigger element on close
       if (focusReturnElement) {
         focusReturnElement.focus();
       }
@@ -257,7 +355,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showTooltipAsSidePanel(node, focusReturnElement) {
-    activeTooltipNode = node; // Set the active tooltip
+    activeTooltipXmlNode = node; // Set the active tooltip XML node
+    activeTooltipTriggerElement = focusReturnElement; // Set the active tooltip trigger element
     const existingPanel = document.getElementById('tooltip-side-panel');
     if (existingPanel) {
       existingPanel.remove();
@@ -297,26 +396,39 @@ document.addEventListener("DOMContentLoaded", () => {
       panel.classList.add('is-hiding');
       panel.addEventListener('animationend', () => {
         panel.remove();
-        activeTooltipNode = null; // Clear active tooltip on close
+        activeTooltipXmlNode = null; // Clear active tooltip XML node on close
+        activeTooltipTriggerElement = null; // Clear active tooltip trigger element on close
         document.removeEventListener('keydown', handlePanelKeydown); // Clean up listener
         if (focusReturnElement) focusReturnElement.focus();
       }, { once: true });
     };
 
     // --- Dynamic Vertical Positioning ---
-    // Calculate the top position of the icon relative to the main content area
-    const mainContentRect = document.getElementById('main-content').getBoundingClientRect();
-    const iconRect = focusReturnElement.getBoundingClientRect();
-    const marginTop = iconRect.top - mainContentRect.top;
+    // Only proceed if focusReturnElement is a valid DOM element
+    if (focusReturnElement && focusReturnElement.getBoundingClientRect) {
+      const mainContentRect = document.getElementById('main-content').getBoundingClientRect();
+      const iconRect = focusReturnElement.getBoundingClientRect();
+      const marginTop = iconRect.top - mainContentRect.top;
 
-    // Set initial max-height to allow for measurement
-    panel.style.maxHeight = `${mainContentRect.height}px`;
+      // Set initial max-height to allow for measurement
+      panel.style.maxHeight = `${mainContentRect.height}px`;
 
-    // Check if the panel with its new margin top would overflow the container
-    if (panel.offsetHeight + marginTop < mainContentRect.height) {
-      // If it fits, apply the margin
-      panel.style.marginTop = `${marginTop}px`;
-      panel.style.maxHeight = `${mainContentRect.height - marginTop}px`;
+      // Check if the panel with its new margin top would overflow the container
+      if (panel.offsetHeight + marginTop < mainContentRect.height) {
+        // If it fits, apply the margin
+        panel.style.marginTop = `${marginTop}px`;
+        panel.style.maxHeight = `${mainContentRect.height - marginTop}px`;
+      } else {
+        // If it doesn't fit, align to top and use full height
+        panel.style.marginTop = '0px';
+        panel.style.maxHeight = `${mainContentRect.height}px`;
+      }
+    } else {
+      // Fallback if focusReturnElement is not a valid DOM element (e.g., during resize when it might be null)
+      // Align to top and use full height
+      const mainContentRect = document.getElementById('main-content').getBoundingClientRect();
+      panel.style.marginTop = '0px';
+      panel.style.maxHeight = `${mainContentRect.height}px`;
     }
 
     panel.querySelector('.close-icon').addEventListener('click', closePanel);
@@ -334,13 +446,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!question) return;
 
     const text = question.querySelector("text").textContent;
-    const tooltipNode = question.querySelector("tooltip");
+    const tooltipNode = question.querySelector("tooltip"); // We still check for its existence
     const options = question.querySelectorAll("option");
 
     const questionMessageContainer = document.createElement("div");
     questionMessageContainer.className = "chat-message fade-in";
     questionMessageContainer.textContent = text;
 
+    // If a tooltip exists in the XML, we'll add the icon.
+    // The content will be pulled from Strapi if available.
     if (tooltipNode) {
       const tooltipIcon = document.createElement("span");
       tooltipIcon.className = "tooltip-icon";
@@ -351,11 +465,23 @@ document.addEventListener("DOMContentLoaded", () => {
       questionMessageContainer.classList.add("has-tooltip");
 
       const showTooltip = () => {
+        // Create a temporary node to hold the content for the tooltip functions
+        const tempNode = document.createElement('div');
+        // Get Strapi content (which is a JSON object)
+        const strapiContent = strapiTooltips.get(questionId);
+        // Convert Strapi JSON to HTML if it exists, otherwise fallback to XML content
+        const content = strapiContent ? strapiRichTextToHtml(strapiContent) : getInnerXml(tooltipNode);
+        tempNode.innerHTML = content;
+
+        // Store the temporary node and the DOM element before showing
+        activeTooltipXmlNode = tempNode;
+        activeTooltipTriggerElement = tooltipIcon;
+
         // Use matchMedia to decide which tooltip to show
         if (window.matchMedia('(min-width: 1025px)').matches) {
-          showTooltipAsSidePanel(tooltipNode, tooltipIcon);
+          showTooltipAsSidePanel(tempNode, tooltipIcon);
         } else {
-          showTooltipAsModal(tooltipNode, tooltipIcon);
+          showTooltipAsModal(tempNode, tooltipIcon);
         }
       };
 
@@ -590,7 +716,8 @@ document.addEventListener("DOMContentLoaded", () => {
       sidePanel.classList.add('is-hiding');
       sidePanel.addEventListener('animationend', () => {
         sidePanel.remove();
-        activeTooltipNode = null; // Clear active tooltip
+        activeTooltipXmlNode = null; // Clear active tooltip XML node
+        activeTooltipTriggerElement = null; // Clear active tooltip trigger element
         if (callback) callback();
       }, { once: true });
     } else {
@@ -601,7 +728,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Close modal if it exists
     if (modal) {
       modal.remove();
-      activeTooltipNode = null; // Clear active tooltip
+      activeTooltipXmlNode = null; // Clear active tooltip XML node
+      activeTooltipTriggerElement = null; // Clear active tooltip trigger element
     }
   }
   function evaluateDependencies() {
@@ -658,9 +786,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         allDocNodes.forEach(docNode => {
           const docText = docNode.querySelector("text")?.textContent.trim();
-          if (!documents.has(docText)) return;
+          if (!docText || !documents.has(docText)) return;
+          const strapiId = docNode.getAttribute('strapiId');
 
-          const description = docNode.querySelector("description")?.textContent.trim();
+          // Get description from Strapi cache, fallback to XML if not found
+          const strapiDescriptionContent = strapiId ? strapiDocuments.get(strapiId) : null;
+          let description = '';
+          if (strapiDescriptionContent) {
+            // Check if the content is Strapi rich text (array of blocks) or a plain string
+            if (Array.isArray(strapiDescriptionContent)) {
+              description = strapiRichTextToHtml(strapiDescriptionContent);
+            } else if (typeof strapiDescriptionContent === 'string') {
+              description = strapiDescriptionContent; // Use plain string directly
+            }
+          } else {
+            description = docNode.querySelector("description")?.textContent.trim() || '';
+          }
 
           const item = document.createElement("div");
           item.classList.add("document-item");
