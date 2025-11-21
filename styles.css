@@ -10,22 +10,19 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #f4f7fb;
   color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Align items to the top */
-  padding: 20px;
-  height: calc(calc(var(--vh, 1vh) * 100) - 40px); /* Adjust height to account for padding, using JS-calculated vh */
-  box-sizing: border-box; /* Include padding in height calculation */
 }
 
 /* New container to wrap chat and side panel */
 #main-content {
   display: flex;
   justify-content: center;
+  align-items: flex-start; /* Align items to the top */
   width: 100%;
   max-width: 1600px; /* Increase max-width for wider screens */
   gap: 24px;
-  height: 100%;
+  height: calc(var(--vh, 1vh) * 100); /* Use JS-calculated vh */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 /* === Chat-Container === */
@@ -79,20 +76,23 @@ body {
 
 /* Bot-Nachricht (Frage) */
 .chat-message {
+  display: flex; /* Use flexbox for alignment */
+  align-items: center; /* Vertically center icon and text */
+  gap: 8px; /* Add space between text and icon */
   background-color: #f1f1f1;
   padding: 12px 16px;
-  position: relative;
   border-radius: 20px;
   max-width: 75%;
   font-size: 15px;
   color: #000;
   align-self: flex-start;
   margin: 4px 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Remove the extra padding on the right, as flexbox handles the layout. */
 .chat-message.has-tooltip {
-  padding-right: 40px;
+  padding-right: 16px; /* Match the default padding */
 }
 
 .chat-message.fade-in {
@@ -102,10 +102,7 @@ body {
 }
 
 .tooltip-icon {
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  transform: translateY(-50%);
+  flex-shrink: 0; /* Prevent the icon from shrinking */
   cursor: pointer;
   color: #007aff;
   font-size: 16px;
@@ -398,8 +395,8 @@ body {
   color: #007aff;
   padding: 10px 14px;
   border-radius: 20px;
-  max-width: 70%;
-  font-size: 14px;
+  max-width: 75%; /* Match chat-message */
+  font-size: 15px; /* Match chat-message */
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
   align-self: flex-end;
@@ -540,138 +537,206 @@ body {
 #results-page {
   width: 100%;
   max-width: 600px;
-  margin: 0 auto;
-  padding: 40px 24px;
-  font-family: 'Google Sans', sans-serif;
+  margin: 20px auto; /* Reduced top margin */
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* Consistent font */
 }
 
 .results-content {
-  background: #fff;
+  background: #f8f9fa; /* Light grey background to make cards stand out */
   border-radius: 28px;
   padding: 32px;
-  box-shadow: 0 1px 3px 0 rgb(60 64 67 / 30%), 0 4px 8px 3px rgb(60 64 67 / 15%);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06); /* Softer shadow */
 }
 
 #recommendations-container {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px; /* Increased spacing */
   color: #202124;
 }
 
-#documents-section {
-  margin-bottom: 24px;
+#recommendations-container h3 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
 }
 
-#documents-section.hidden {
+.documents-section.hidden {
   display: none;
 }
 
-#documents-section:not(.hidden) + .material-button {
-  margin-top: 32px;
+.documents-section {
+  margin-bottom: 24px; /* Space between cards */
+}
+.results-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px; /* Space between the two buttons */
+  margin-top: 32px; /* Space above the button group */
 }
 
-.material-button {
-  margin-top: 24px;
+.results-actions button {
   width: 100%;
   height: 48px;
-  background: #1a73e8;
-  color: #fff;
-  border: none;
-  border-radius: 24px;
-  font-family: 'Google Sans', sans-serif;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
+
+/* Primary button: "Start New Assessment" */
+#restart-button {
+  background: linear-gradient(135deg, #007aff 0%, #005bb5 100%);
+  color: #fff;
+  border: none;
+}
+
+#restart-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+}
+
+/* Secondary button: "Go Back" */
+#review-answers-button {
+  background-color: #fff;
+  color: #007aff;
+  border: 2px solid #e0e0e0;
+}
+
+#review-answers-button:hover {
+  border-color: #007aff;
+  background-color: #f5faff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.15);
+}
+
+
 .documents-card {
-  border: 1px solid #e0e0e0;
+  background-color: #fff;
   border-radius: 16px;
   overflow: hidden;
-  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
 }
 
 .card-header {
-  padding: 16px 20px;
-  background-color: #f1f3f4;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.card-header h3 {
   margin: 0;
-  font-size: 18px;
+  padding: 16px 20px;
+  font-size: 20px; /* Larger font size like tooltip h2 */
   font-weight: 600;
-  color: #202124;
+  color: #202124; /* Darker color like tooltip h2 */
+  border-bottom: 1px solid #e8eaed; /* Separator line */
 }
 
 .document-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e8eaed;
+  /* The container for each document entry */
+  padding: 14px 20px; /* Increased vertical padding */
+  border-bottom: 1px solid #f1f3f4; /* Lighter separator for items */
   background-color: #fff;
 }
 
-.documents-container .document-item:last-child {
+/* Use a class selector for better specificity */
+.documents-container .document-item:last-of-type {
   border-bottom: none;
 }
 
-.document-item i {
-  color: #1a73e8;
-  font-size: 18px;
-  margin-right: 16px;
-  margin-top: 3px;
+/* No specific styles needed for document-item-content anymore */
+.doc-title {
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 4px 0;
 }
 
 .doc-description {
   font-size: 14px;
   color: #5f6368;
-}
-
-.material-button:hover {
-  background: #1557b0;
+  margin: 0;
+  line-height: 1.4;
 }
 
 @media (max-width: 600px) {
   body {
-    padding: 10px;
+    background-color: #ffffff; /* Match chat container background for seamless look */
   }
   
   #chat-container {
-    border-radius: 16px;
+    border-radius: 0; /* Remove border-radius for a full-screen look */
     padding: 16px;
-    flex: 1; /* Allow chat container to fill available space */
-    height: auto; /* Let flexbox determine the height */
+    height: 100%; /* Ensure it fills the body */
+    box-sizing: border-box; /* Include padding in height calculation */ 
   }
   
+  #main-content {
+    padding: 0; /* Remove padding for edge-to-edge feel */
+    gap: 0;
+  }
+
   #chat-box {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Make chat-box fill the container */
     gap: 12px;
-    justify-content: flex-end; /* Start from bottom on mobile */
-    /* Ensure proper scrolling on mobile */
+    justify-content: flex-start; /* Start from top, JS will handle scrolling */
+    min-height: 0; /* Fix for flexbox overflow */
+    overflow-y: auto; /* Enable vertical scrolling */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
   
   .chat-message {
-    font-size: 14px;
-    padding: 10px 14px;
-    padding-right: 35px;
-    max-width: 85%;
+    font-size: 18px; /* Slightly larger font for readability */
+    padding: 12px 16px; /* Increase padding for more space */
+    padding-right: 45px; /* Adjust for larger tooltip icon */
+    max-width: 75%;
   }
   
+  .tooltip-icon {
+    /* Make the tappable area larger for mobile */
+    width: 30px;
+    height: 30px;
+    right: 12px; /* Adjust position for the new size */
+    font-size: 20px; /* Increase icon size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tooltip-modal-content {
+    font-size: 18px; /* Increase base font size for modal content */
+  }
+
+  .tooltip-modal-content .close-tooltip {
+    font-size: 18px; /* Increase font size for the 'Got it' button */
+    padding: 12px 20px; /* Adjust padding for the larger text */
+    border-radius: 8px; /* Slightly larger radius to match the scale */
+  }
+
+  /* Increase font size for confirmation and resume dialogs on mobile */
+  .dialog-content p {
+    font-size: 18px;
+  }
+
+  .dialog-content button {
+    font-size: 18px;
+    padding: 12px 20px; /* Adjust padding for larger text */
+  }
+
+
   .answer-bubble {
-    font-size: 13px;
-    padding: 8px 12px;
-    max-width: 75%;
+    font-size: 18px; 
+    max-width: 80%;
+    font-weight: 500;
+    border-radius: 999px; /* Ensure pill shape on mobile */
   }
   
   .tooltip-text {
     width: 160px;
     right: 0;
-    font-size: 12px;
+    font-size: 18px;
     transform: translateX(25%);
     max-width: calc(100vw - 20px);
   }
@@ -686,7 +751,7 @@ body {
   }
 
   #restart-button {
-    font-size: 15px;
+    font-size: 18px;
     padding: 10px;
   }
 }
@@ -695,32 +760,23 @@ body {
 @media (max-width: 480px) {
   .tooltip-text {
     width: 140px;
-    font-size: 11px;
+    font-size: 18px;
     max-width: calc(100vw - 16px);
     transform: translateX(20%);
   }
   
   .chat-message {
-    max-width: 90%;
-    padding-right: 32px;
-  }
-  
-  .tooltip-icon {
-    right: 14px;
-    font-size: 14px;
+    max-width: 75%;
   }
 }
 
 /* Extra narrow screens (like 292px width) */
 @media (max-width: 320px) {
   .chat-message {
-    padding-right: 30px;
-    font-size: 13px;
+    font-size: 14px;
   }
-  
-  .tooltip-icon {
-    right: 12px;
-    font-size: 13px;
+  .answer-bubble {
+    font-size: 14px;
   }
 }
 
@@ -763,21 +819,6 @@ body {
   }
 }
 
-
-#restart-button {
-  padding: 14px 28px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  color: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  margin-top: 16px;
-  align-self: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
 
 /* iOS-inspired animations */
 @keyframes slideInFromBottom {

@@ -1,0 +1,16 @@
+- allignment help (Guidelines, magnet-like positioning in place wiht nearby rows/collums - like in powerpoint)
+- create as standalone app, browser-based. editing a local file on the computer of the user. (initially, the file is either opened in the file explorer or created on the client computer. When saving, this file is overwritten.
+- Make edges movable, by adding small, visual break points displayed as dots on the edge that act similar to nodes. can be deleted or moved. When selected, they are highligted- like a node. But they have no other functionality besides position. The should look very decently to not distract from logic. 
+
+new edges connecting to preexisitng documents are not blue. new edges are blue when connected to a document that was also newly added. but should also be blue when connecting to a document loaded from XML.
+text edit modals should me movable on the screen (instead of moving the node)
+
+Implementing save/load functionality (XML export + position persistence) - I'm about 40% done
+
+remove gradient from question nodes. Make sure contrast is good. Question nodes shoould not be blue as well as the documents.
+
+Add export to PDF and export to PNG.
+
+Add end event to visualize successfull completion of form or stop due to no matching category.
+
+allow crtl z & y to undo and redo

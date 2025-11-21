@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const recommendationsContainer = document.getElementById("recommendations-container");
   const documentsContainer = document.getElementById("documents-container");
   const restartButton = document.getElementById("restart-button");
+  const reviewAnswersButton = document.getElementById("review-answers-button");
 
   let userAnswers = [];
   let recommendations = [];
@@ -94,11 +95,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Smooth scroll to bottom function with padding
   function scrollToBottom() {
-    // In a flex-end layout, setting scrollTop to scrollHeight is all we need.
-    // The browser handles scrolling to the bottom of the content.
     requestAnimationFrame(() => {
         const chatBox = document.getElementById("chat-box");
         if (chatBox) {
+            // On mobile, we use margin-top: auto on the first element to push content down.
+            // This is more reliable than flexbox justify-content for scrollable containers.
+            if (window.matchMedia('(max-width: 600px)').matches && chatBox.firstElementChild) {
+                // Remove margin from all children first to reset
+                Array.from(chatBox.children).forEach(child => child.style.marginTop = '');
+                // If content is not overflowing, push it to the bottom.
+                if (chatBox.scrollHeight <= chatBox.clientHeight) {
+                    chatBox.firstElementChild.style.marginTop = 'auto';
+                }
+            }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
     });
@@ -115,6 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   restartButton.addEventListener("click", restartApp);
+  reviewAnswersButton.addEventListener("click", reviewAnswers);
 
   function setCookie(name, value, days) {
     const d = new Date();
@@ -138,8 +148,11 @@ document.addEventListener("DOMContentLoaded", () => {
     chatContainer.classList.remove("hidden");
     resultsPage.classList.add("hidden");
     chatBox.innerHTML = "";
+
+    // Clear results from the previous session
     recommendationsContainer.innerHTML = "";
-    documentsContainer.innerHTML = "";
+    document.getElementById("mandatory-documents-container").innerHTML = "";
+    document.getElementById("optional-documents-container").innerHTML = "";
 
     userAnswers = [];
     recommendations = [];
@@ -150,8 +163,39 @@ document.addEventListener("DOMContentLoaded", () => {
     startApp(xmlDoc);
   }
 
+  function reviewAnswers() {
+    // Ensure there are answers to go back to.
+    if (userAnswers.length === 0) return;
+
+    const lastAnswer = userAnswers[userAnswers.length - 1];
+    const questionIdToRevisit = lastAnswer.questionId;
+
+    // Remove the last answer from the array.
+    userAnswers.pop();
+
+    // Clear the chat box and reset results data.
+    chatBox.innerHTML = "";
+    recommendations = [];
+    documents = new Set();
+
+    // Update the cookie with the modified answers.
+    setCookie("savedAnswers", JSON.stringify(userAnswers), 30);
+
+    // Switch views from results to chat.
+    resultsPage.classList.add("hidden");
+    chatContainer.classList.remove("hidden");
+
+    // Re-display all previous answers.
+    displayAllPreviousAnswers();
+    // Display the last question again, unanswered.
+    displayQuestion(xmlDoc, questionIdToRevisit, true);
+  }
+
   // --- Strapi Integration ---
   const STRAPI_URL = "http://localhost:1337/api";
+
+  // We'll store the promises for the fetch calls to await them later if needed.
+  let strapiTooltipsPromise = null;
 
   async function fetchStrapiTooltips() {
     try {
@@ -174,14 +218,13 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchStrapiDocuments() {
     try {
       // Note: The API endpoint is 'visa-documents' as defined in Strapi
-      const response = await fetch(`${STRAPI_URL}/documents?populate=*`); // Corrected endpoint
+      const response = await fetch(`${STRAPI_URL}/visa-documents?populate=*`); // Corrected endpoint
       if (!response.ok) throw new Error('Failed to fetch documents');
       const data = await response.json();
       data.data.forEach(item => {
-        const attributes = item.attributes;
-        // Use the unique documentId from Strapi which corresponds to strapiId in the XML
-        if (attributes && attributes.documentId && attributes.description) {
-          strapiDocuments.set(attributes.documentId, attributes.description);
+        // Use the title as the key and store the description.
+        if (item.title && item.description) {
+          strapiDocuments.set(item.title, item.description);
         }
       });
       console.log("✅ Strapi documents loaded:", strapiDocuments);
@@ -191,6 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("❌ Error fetching documents from Strapi. Is the API endpoint '/api/documents' correct?", error);
     }
   }
+
 
   // --- Strapi Rich Text to HTML Converter ---
   function strapiRichTextToHtml(blocks) {
@@ -241,11 +285,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     return html;
   }
+
+  // Start fetching Strapi data immediately, but don't block rendering.
+  strapiTooltipsPromise = fetchStrapiTooltips();
+  fetchStrapiDocuments();
+
   fetch("questions.xml")
     .then(response => response.ok ? response.text() : Promise.reject("Failed to load XML"))
-    .then(async (xmlText) => {
+    .then((xmlText) => {
       xmlDoc = new DOMParser().parseFromString(xmlText, "application/xml");
-      await Promise.all([fetchStrapiTooltips(), fetchStrapiDocuments()]); // Fetch Strapi data before starting
       startApp(xmlDoc);
     })
     .catch(error => console.error("❌ Error loading XML:", error));
@@ -261,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
         displayAllPreviousAnswers();
         showResumeDialog();
       } else {
-        displayQuestion(xmlDoc, "1");
+        displayQuestion(xmlDoc, "1", false);
       }
     }
 
@@ -278,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const nextId = nextQuestionNode?.getAttribute("questionId") || defaultNextNode?.getAttribute("questionId");
 
         if (nextId) {
-          displayQuestion(xmlDoc, nextId);
+          displayQuestion(xmlDoc, nextId, false);
         } else {
           evaluateDependencies();
           displayResults();
@@ -287,10 +335,11 @@ document.addEventListener("DOMContentLoaded", () => {
           setCookie("savedAnswers", "", -1);
           chatBox.innerHTML = "";
           userAnswers = [];
-          displayQuestion(xmlDoc, "1");
+          displayQuestion(xmlDoc, "1", false);
       }
     }
 
+    // This function is no longer needed with Strapi but kept for tooltip logic.
     function getInnerXml(node) {
       if (!node) return '';
       const serializer = new XMLSerializer();
@@ -441,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('keydown', handlePanelKeydown);
   }
 
-  function displayQuestion(xmlDoc, questionId) {
+  function displayQuestion(xmlDoc, questionId, isEdit = false) {
     const question = xmlDoc.querySelector(`question[id="${questionId}"]`);
     if (!question) return;
 
@@ -450,11 +499,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const options = question.querySelectorAll("option");
 
     const questionMessageContainer = document.createElement("div");
-    questionMessageContainer.className = "chat-message fade-in";
-    questionMessageContainer.textContent = text;
+    questionMessageContainer.className = "chat-message";
+    if (!isEdit) {
+      questionMessageContainer.classList.add("fade-in");
+    }
 
-    // If a tooltip exists in the XML, we'll add the icon.
-    // The content will be pulled from Strapi if available.
+    // If a tooltip exists in the XML, we'll add the icon. The content will be pulled from Strapi.
     if (tooltipNode) {
       const tooltipIcon = document.createElement("span");
       tooltipIcon.className = "tooltip-icon";
@@ -463,14 +513,18 @@ document.addEventListener("DOMContentLoaded", () => {
       tooltipIcon.setAttribute('role', 'button');
       tooltipIcon.setAttribute('aria-label', 'Show more information');
       questionMessageContainer.classList.add("has-tooltip");
+ 
+      const showTooltip = async () => {
+        // Ensure the tooltip data has been fetched before trying to display it.
+        await strapiTooltipsPromise;
 
-      const showTooltip = () => {
         // Create a temporary node to hold the content for the tooltip functions
         const tempNode = document.createElement('div');
+        const strapiId = tooltipNode.textContent.trim(); // e.g., "welcome-tooltip"
         // Get Strapi content (which is a JSON object)
-        const strapiContent = strapiTooltips.get(questionId);
+        const strapiContent = strapiTooltips.get(strapiId);
         // Convert Strapi JSON to HTML if it exists, otherwise fallback to XML content
-        const content = strapiContent ? strapiRichTextToHtml(strapiContent) : getInnerXml(tooltipNode);
+        const content = strapiContent ? strapiRichTextToHtml(strapiContent) : `Tooltip content for '${strapiId}' not found.`;
         tempNode.innerHTML = content;
 
         // Store the temporary node and the DOM element before showing
@@ -495,6 +549,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tooltipIcon.addEventListener('keydown', showTooltipWithKeyboard);
       questionMessageContainer.appendChild(tooltipIcon);
     }
+    // Set text content after potentially adding the icon
+    questionMessageContainer.insertBefore(document.createTextNode(text), questionMessageContainer.firstChild);
 
     chatBox.appendChild(questionMessageContainer);
 
@@ -514,7 +570,6 @@ document.addEventListener("DOMContentLoaded", () => {
       answerBubble.addEventListener("click", () => {
         if (answered) return;
         answered = true;
-
         userAnswers.push({ questionId, optionId: option.getAttribute("id") });
         setCookie("savedAnswers", JSON.stringify(userAnswers), 30);
 
@@ -532,9 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
         editButton.className = "edit-button";
         editButton.innerHTML = '<i class="fas fa-pen" title="Edit"></i>';
         editButton.setAttribute('aria-label', 'Edit this answer');
-        editButton.addEventListener("click", () => {
-          showConfirmationDialog(questionId);
-        });
+        editButton.addEventListener("click", () => handleEdit(questionId));
         answerContainer.appendChild(editButton);
 
         // Process next question immediately
@@ -547,10 +600,10 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // Use the specific next question ID, or fall back to the default
         const nextId = nextNode?.getAttribute("questionId") || defaultNextNode?.getAttribute("questionId");
-
+        
         scrollToBottom();
         if (nextId) {
-          displayQuestion(xmlDoc, nextId);
+          displayQuestion(xmlDoc, nextId, false);
         } else {
           evaluateDependencies();
           displayResults();
@@ -583,7 +636,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const questionMessage = document.createElement("div");
       questionMessage.className = "chat-message";
       questionMessage.textContent = question.querySelector("text").textContent;
-
+      
       const answerContainer = document.createElement("div");
       answerContainer.className = "answer-container";
       adjustAnswerContainerSpacing(answerContainer);
@@ -591,15 +644,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const answerBubble = document.createElement("div");
       answerBubble.className = "answer-bubble selected";
       answerBubble.textContent = selectedOption.textContent;
-      answerBubble.setAttribute('tabindex', '0'); // Ensure it's focusable
+      answerBubble.setAttribute('tabindex', '0');
 
       const editButton = document.createElement("button");
       editButton.className = "edit-button";
       editButton.innerHTML = '<i class="fas fa-pen" title="Edit"></i>';
       editButton.setAttribute('aria-label', 'Edit this answer');
-      editButton.addEventListener("click", () => {
-        showConfirmationDialog(answer.questionId);
-      });
+      editButton.addEventListener("click", () => handleEdit(answer.questionId));
 
       answerContainer.appendChild(answerBubble);
       answerContainer.appendChild(editButton);
@@ -610,6 +661,26 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Scroll to bottom after displaying all previous answers
     scrollToBottom();
+  }
+
+  function handleEdit(questionId) {
+    const lastAnswer = userAnswers[userAnswers.length - 1];
+    // If the question to edit is the last one answered, no confirmation is needed.
+    if (lastAnswer && lastAnswer.questionId === questionId) {
+      const index = userAnswers.findIndex(ans => ans.questionId === questionId);
+      if (index !== -1) {
+        userAnswers = userAnswers.slice(0, index);
+        chatBox.innerHTML = "";
+        recommendations = [];
+        documents = new Set();
+        setCookie("savedAnswers", JSON.stringify(userAnswers), 30);
+        displayAllPreviousAnswers();
+        displayQuestion(xmlDoc, questionId, true);
+      }
+    } else {
+      // For any other question, show the confirmation dialog.
+      showConfirmationDialog(questionId);
+    }
   }
 
   function showConfirmationDialog(questionId) {
@@ -648,7 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
           documents = new Set();
           setCookie("savedAnswers", JSON.stringify(userAnswers), 30);
           displayAllPreviousAnswers();
-          displayQuestion(xmlDoc, currentEditQuestionId);
+          displayQuestion(xmlDoc, currentEditQuestionId, true);
         }
       }
       closeDialog();
@@ -732,6 +803,8 @@ document.addEventListener("DOMContentLoaded", () => {
       activeTooltipTriggerElement = null; // Clear active tooltip trigger element
     }
   }
+
+
   function evaluateDependencies() {
     const dependencies = xmlDoc.querySelector("dependencies");
 
@@ -753,7 +826,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const questionId = condition.getAttribute("questionId");
     const optionId = condition.getAttribute("optionId");
     const logic = condition.getAttribute("logic");
-
+    
     const userAnswer = userAnswers.find(ans => ans.questionId === questionId);
     return logic === "not"
       ? userAnswer && userAnswer.optionId !== optionId
@@ -766,10 +839,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chatContainer.classList.add("hidden");
     resultsPage.classList.remove("hidden");
-    const documentsSection = document.getElementById("documents-section");
+    const mandatoryDocumentsSection = document.getElementById("mandatory-documents-section");
+    const optionalDocumentsSection = document.getElementById("optional-documents-section");
 
     recommendationsContainer.innerHTML = "";
-    documentsContainer.innerHTML = "";
+    const mandatoryContainer = document.getElementById("mandatory-documents-container");
+    const optionalContainer = document.getElementById("optional-documents-container");
 
     if (recommendations.length > 0) {
       const firstRec = recommendations[0];
@@ -779,18 +854,21 @@ document.addEventListener("DOMContentLoaded", () => {
       recommendationsContainer.appendChild(message);
 
       if (documents.size > 0) {
-        documentsSection.classList.remove("hidden");
-        documentsContainer.innerHTML = ''; // Clear previous content
+        mandatoryContainer.innerHTML = '';
+        optionalContainer.innerHTML = '';
 
         const allDocNodes = xmlDoc.querySelectorAll("document");
+        let hasMandatory = false;
+        let hasOptional = false;
 
         allDocNodes.forEach(docNode => {
           const docText = docNode.querySelector("text")?.textContent.trim();
           if (!docText || !documents.has(docText)) return;
-          const strapiId = docNode.getAttribute('strapiId');
 
-          // Get description from Strapi cache, fallback to XML if not found
-          const strapiDescriptionContent = strapiId ? strapiDocuments.get(strapiId) : null;
+          const docType = docNode.getAttribute("type");
+
+          // Get description from Strapi cache using the document title (docText) as the key.
+          const strapiDescriptionContent = strapiDocuments.get(docText);
           let description = '';
           if (strapiDescriptionContent) {
             // Check if the content is Strapi rich text (array of blocks) or a plain string
@@ -807,12 +885,23 @@ document.addEventListener("DOMContentLoaded", () => {
           item.classList.add("document-item");
 
           item.innerHTML = `
-            <p><i class="fas fa-file-alt"></i> <strong>${docText}</strong></p>
-            ${description ? `<p class="doc-description">${description}</p>` : ""}
+            <div class="document-item-content">
+              <p class="doc-title">${docText}</p>
+              ${description ? `<p class="doc-description">${description}</p>` : ""}
+            </div>
           `;
 
-          documentsContainer.appendChild(item);
+          if (docType === 'mandatory') {
+            mandatoryContainer.appendChild(item);
+            hasMandatory = true;
+          } else {
+            optionalContainer.appendChild(item);
+            hasOptional = true;
+          }
         });
+
+        mandatoryDocumentsSection.classList.toggle("hidden", !hasMandatory);
+        optionalDocumentsSection.classList.toggle("hidden", !hasOptional);
       }
     } else {
       const message = document.createElement("div");
@@ -822,8 +911,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <p>Please contact the German embassy or a visa advisor for further assistance.</p>
       `;
       recommendationsContainer.appendChild(message); // Add this line
-      documentsContainer.innerHTML = "";
-      documentsSection.classList.add("hidden");
+      mandatoryDocumentsSection.classList.add("hidden");
+      optionalDocumentsSection.classList.add("hidden");
     }
   }
 });
