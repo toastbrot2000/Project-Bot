@@ -43,7 +43,10 @@ const FlowModelerContent = () => {
     const { onNodeDrag: onNodeDragHelper, resetHelperLines, HelperLines } = useHelperLines();
     const { screenToFlowPosition, project } = useReactFlow();
     const { takeSnapshot, undo, redo, canUndo, canRedo } = useUndoRedo();
+
     const dragStartSnapshot = useRef(null);
+    const fileInputRef = useRef(null);
+    const [flowKey, setFlowKey] = useState(0); // Key to force re-render of ReactFlow
 
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
@@ -527,32 +530,45 @@ const FlowModelerContent = () => {
         setEdges(eds => eds.map(e => ({ ...e, animated: e.selected ? true : !globalAnimate })));
     };
 
-    return (
-        <div style={{ width: '100%', height: '100vh' }}>
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onReconnect={onReconnect}
-                onNodeDragStart={onNodeDragStart}
-                onNodeDragStop={onNodeDragStop}
-                onNodeDrag={onNodeDrag}
-                nodeTypes={nodeTypes}
-                edgeTypes={edgeTypes}
-                fitView
-                deleteKeyCode={null}
-                onNodeClick={onNodeClick}
-                onEdgeClick={onEdgeClick}
-                onPaneClick={onPaneClick}
-                onDragOver={onDragOver}
-                onDrop={onDrop}
-                selectionOnDrag={true}
-                selectionMode="partial"
-                panOnDrag={[1]}
-                panOnScroll={true}
-            >
+    const handleSave = useCallback(() => {
+        const xml = flowToXML(nodes, edges);
+        downloadXML(xml);
+    }, [nodes, edges]);
+
+    const handleLoad = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+    ref = { fileInputRef }
+    onChange = { handleFileChange }
+    accept = ".xml"
+    style = {{ display: 'none' }
+}
+            />
+    < ReactFlow
+key = { flowKey }
+nodes = { nodes }
+edges = { edges }
+onNodesChange = { onNodesChange }
+onEdgesChange = { onEdgesChange }
+onConnect = { onConnect }
+onReconnect = { onReconnect }
+onNodeDragStart = { onNodeDragStart }
+onNodeDragStop = { onNodeDragStop }
+onNodeDrag = { onNodeDrag }
+nodeTypes = { nodeTypes }
+edgeTypes = { edgeTypes }
+fitView
+deleteKeyCode = { null}
+onNodeClick = { onNodeClick }
+onEdgeClick = { onEdgeClick }
+onPaneClick = { onPaneClick }
+onDragOver = { onDragOver }
+onDrop = { onDrop }
+selectionOnDrag = { true}
+selectionMode = "partial"
+panOnDrag = { [1]}
+panOnScroll = { true}
+    >
                 <Background />
                 <HelperLines />
                 <Controls />
@@ -675,6 +691,40 @@ const FlowModelerContent = () => {
                     </div>
 
                     <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px' }}>
+                        <button
+                            onClick={handleSave}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                marginBottom: '8px',
+                                background: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            💾 Save XML
+                        </button>
+                        <button
+                            onClick={handleLoad}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                marginBottom: '8px',
+                                background: '#8b5cf6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            📂 Load XML
+                        </button>
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                             <button
                                 onClick={() => undo(nodes, edges, setNodes, setEdges)}
@@ -770,8 +820,8 @@ const FlowModelerContent = () => {
                         )}
                     </div>
                 </Panel>
-            </ReactFlow>
-        </div>
+            </ReactFlow >
+        </div >
     );
 };
 

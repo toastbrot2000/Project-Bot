@@ -1,134 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<questions>
+<questions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="questions.xsd">
+
   <question id="1">
     <text>Hey there! First things first—what brings you to Germany?</text>
-    <tooltip><![CDATA[<h2>Welcome to the Visa Helper Bot!</h2>
-      Here's a quick guide on how to use this tool to find the right information for your journey to Germany. This modal is designed to hold a lot of text, just like this, and will become scrollable if the content exceeds the screen height.
-      <br/><br/>
-      <strong>How It Works:</strong>
-      <br/>
-      <img src="\media\chat-bot-icon-virtual-smart-600nw-2478937553.webp" alt="Bot Logo" height="100%" width="100%"/>
-      <br/>
+    <tooltip>
+      &lt;h2&gt;Welcome to the Visa Helper Bot!&lt;/h2&gt;
+      Here&apos;s a quick guide on how to use this tool to find the right information for your journey to Germany. This modal is designed to hold a lot of text, just like this, and will become scrollable if the content exceeds the screen height.
+      &lt;br/&gt;&lt;br/&gt;
+      &lt;strong&gt;How It Works:&lt;/strong&gt;
+      &lt;br/&gt;
+      &lt;img src=&quot;\media\chat-bot-icon-virtual-smart-600nw-2478937553.webp&quot; alt=&quot;Bot Logo&quot; height=&quot;100%&quot; width=&quot;100%&quot;/&gt;
+      &lt;br/&gt;
       This is an interactive chat that will guide you through a series of questions. Your answers will help us determine the most likely visa category for your situation and provide a preliminary list of required documents.
-      <br/><br/>
-      <strong>Navigating the Chat:</strong>
-      <ul>
-        <li><b>Answering Questions:</b> Simply click on the option bubble that best fits your answer. Once you select an answer, it will be highlighted, and the next question will appear automatically.</li>
-        <li><b>Editing Answers:</b> Made a mistake? No problem! Next to each of your selected answers, you'll see a small pencil icon (it looks like this: ✎). Clicking this will allow you to change your answer. Please note that changing an answer will reset all the questions that followed it.</li>
-        <li><b>Session Resumption:</b> If you close the window and come back later, we'll remember where you left off! A dialog will ask if you want to continue your session or start over.</li>
-      </ul>
-      <br/>
-      <strong>Understanding the Results:</strong>
-      <br/>
-      Once you've answered all the questions, you'll be taken to a results page. This page will show you the recommended visa category based on your answers and a checklist of documents you'll likely need to prepare.
-      <br/><br/>
-      <strong>Frequently Asked Questions (FAQ):</strong>
-      <ul>
-          <li><b>Is this service free?</b> Yes, this tool is completely free to use. Our goal is to provide clear, accessible information.</li>
-          <li><b>Is this official legal advice?</b> No. This tool provides guidance based on publicly available information from German immigration authorities. It is not a substitute for legal advice from a qualified immigration lawyer or official information from a German embassy or consulate.</li>
-          <li><b>What happens to my data?</b> Your answers are stored temporarily in a cookie on your browser to allow for session resumption. We do not store your data on our servers. Clearing your cookies will erase your session.</li>
-      </ul>
-      <br/>
-      <strong>Disclaimer:</strong>
-      <br/>
+      &lt;br/&gt;&lt;br/&gt;
+      &lt;strong&gt;Navigating the Chat:&lt;/strong&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;b&gt;Answering Questions:&lt;/b&gt; Simply click on the option bubble that best fits your answer. Once you select an answer, it will be highlighted, and the next question will appear automatically.&lt;/li&gt;
+        &lt;li&gt;&lt;b&gt;Editing Answers:&lt;/b&gt; Made a mistake? No problem! Next to each of your selected answers, you&apos;ll see a small pencil icon (it looks like this: ✎). Clicking this will allow you to change your answer. Please note that changing an answer will reset all the questions that followed it.&lt;/li&gt;
+        &lt;li&gt;&lt;b&gt;Session Resumption:&lt;/b&gt; If you close the window and come back later, we&apos;ll remember where you left off! A dialog will ask if you want to continue your session or start over.&lt;/li&gt;
+      &lt;/ul&gt;
+      &lt;br/&gt;
+      &lt;strong&gt;Understanding the Results:&lt;/strong&gt;
+      &lt;br/&gt;
+      Once you&apos;ve answered all the questions, you&apos;ll be taken to a results page. This page will show you the recommended visa category based on your answers and a checklist of documents you&apos;ll likely need to prepare.
+      &lt;br/&gt;&lt;br/&gt;
+      &lt;strong&gt;Frequently Asked Questions (FAQ):&lt;/strong&gt;
+      &lt;ul&gt;
+          &lt;li&gt;&lt;b&gt;Is this service free?&lt;/b&gt; Yes, this tool is completely free to use. Our goal is to provide clear, accessible information.&lt;/li&gt;
+          &lt;li&gt;&lt;b&gt;Is this official legal advice?&lt;/b&gt; No. This tool provides guidance based on publicly available information from German immigration authorities. It is not a substitute for legal advice from a qualified immigration lawyer or official information from a German embassy or consulate.&lt;/li&gt;
+          &lt;li&gt;&lt;b&gt;What happens to my data?&lt;/b&gt; Your answers are stored temporarily in a cookie on your browser to allow for session resumption. We do not store your data on our servers. Clearing your cookies will erase your session.&lt;/li&gt;
+      &lt;/ul&gt;
+      &lt;br/&gt;
+      &lt;strong&gt;Disclaimer:&lt;/strong&gt;
+      &lt;br/&gt;
       Visa requirements can change and depend on your specific nationality and individual circumstances. The information provided by this bot is for informational purposes only. Always verify the requirements with the official German mission (embassy or consulate) in your country of residence before making any travel plans or submitting an application. We are not liable for any inaccuracies or for decisions made based on the information provided here.
-      <br/><br/>
-      <strong>Further Resources:</strong>
-      <br/>
+      &lt;br/&gt;&lt;br/&gt;
+      &lt;strong&gt;Further Resources:&lt;/strong&gt;
+      &lt;br/&gt;
       For official information, please always refer to these primary sources:
-      <ul>
-        <li>The German Federal Foreign Office ("Auswärtiges Amt").</li>
-        <li>The website of the German embassy or consulate responsible for your region.</li>
-        <li>The "Make it in Germany" official government portal for qualified professionals.</li>
-      </ul>
-      <br/><br/>
-      Ready to start? Just close this window and select your first answer!]]></tooltip>
+      &lt;ul&gt;
+        &lt;li&gt;The German Federal Foreign Office (&quot;Auswärtiges Amt&quot;).&lt;/li&gt;
+        &lt;li&gt;The website of the German embassy or consulate responsible for your region.&lt;/li&gt;
+        &lt;li&gt;The &quot;Make it in Germany&quot; official government portal for qualified professionals.&lt;/li&gt;
+      &lt;/ul&gt;
+      &lt;br/&gt;&lt;br/&gt;
+      Ready to start? Just close this window and select your first answer!
+    </tooltip>
     <options>
       <option id="1">I want to work</option>
       <option id="2">I want to study</option>
       <option id="3">I want to visit family</option>
     </options>
     <nextQuestions>
-      <next questionId="2" optionId="1"/>
-      <next questionId="3" optionId="2"/>
-      <next questionId="4" optionId="3"/>
+      <next optionId="1" questionId="2"/>
+      <next optionId="2" questionId="3"/>
+      <next optionId="3" questionId="4"/>
     </nextQuestions>
   </question>
+
   <question id="2">
     <text>Do you have a passfort?</text>
     <options>
       <option id="1">Yes</option>
       <option id="2">No</option>
     </options>
-    <nextQuestions/>
+    <nextQuestions>
+      <next optionId="1" endNodeId="Node-1764263940922"/>
+      <next optionId="2" endNodeId="Node-1764263940922"/>
+    </nextQuestions>
   </question>
+
   <question id="3">
     <text>Are you enrolled?</text>
     <options>
       <option id="1">Yes</option>
       <option id="2">No</option>
     </options>
-    <nextQuestions/>
+    <nextQuestions>
+      <next optionId="1" endNodeId="Node-1764263940922"/>
+      <next optionId="2" endNodeId="Node-1764263940922"/>
+    </nextQuestions>
   </question>
+
   <question id="4">
     <text>Is your family member german</text>
     <options>
       <option id="1">Yes</option>
       <option id="2">No</option>
     </options>
-    <nextQuestions/>
+    <nextQuestions>
+      <next optionId="1" endNodeId="Node-1764263940922"/>
+      <next optionId="2" endNodeId="Node-1764263940922"/>
+    </nextQuestions>
   </question>
+
+  <endNodes>
+    <endNode id="Node-1764263940922">
+      <text>New endNode</text>
+    </endNode>
+  </endNodes>
+
   <dependencies>
-    <recommendation>
-      <text>You may qualify for a blue card</text>
-      <conditions>
-        <condition questionId="2" optionId="1" logic="equals"/>
-      </conditions>
-    </recommendation>
-    <recommendation>
-      <text>You may qualify for a blue card</text>
-      <conditions>
-        <condition questionId="2" optionId="2" logic="equals"/>
-      </conditions>
-    </recommendation>
-    <recommendation>
-      <text>You may qualify for a study visa</text>
-      <conditions>
-        <condition questionId="3" optionId="1" logic="equals"/>
-      </conditions>
-    </recommendation>
-    <recommendation>
-      <text>You qualify.</text>
-      <conditions>
-        <condition questionId="4" optionId="1" logic="equals"/>
-      </conditions>
-    </recommendation>
-    <recommendation>
-      <text>You qualify.</text>
-      <conditions>
-        <condition questionId="4" optionId="2" logic="equals"/>
-      </conditions>
-    </recommendation>
     <document type="mandatory">
       <text>Work contract</text>
       <description>Your Contract from your future employee; must be signed</description>
       <conditions>
-        <condition questionId="2" optionId="1" logic="equals"/>
+        <condition questionId="2" optionId="1"/>
       </conditions>
     </document>
+
     <document type="mandatory">
       <text>Enrollment certificate</text>
       <description>Please upload with stamp</description>
-      <conditions>
-        <condition questionId="3" optionId="1" logic="equals"/>
-      </conditions>
     </document>
+
     <document type="mandatory">
       <text>Residence title</text>
       <description>please upload your residence title</description>
-      <conditions>
-        <condition questionId="4" optionId="1" logic="not"/>
-      </conditions>
     </document>
+
   </dependencies>
+
 </questions>

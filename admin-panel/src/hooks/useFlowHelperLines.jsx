@@ -38,9 +38,9 @@ export const useHelperLines = () => {
         setHelperLines({ horizontal: undefined, vertical: undefined });
     }, []);
 
-    const HelperLines = () => {
+    const HelperLines = useCallback(() => {
         return <HelperLinesRenderer horizontal={helperLines.horizontal} vertical={helperLines.vertical} />;
-    };
+    }, [helperLines]);
 
     return {
         onNodeDrag,

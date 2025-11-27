@@ -14,6 +14,7 @@ export const flowToXML = (nodes, edges) => {
     // Separate nodes by type
     const questionNodes = nodes.filter(n => n.type === 'questionNode');
     const documentNodes = nodes.filter(n => n.type === 'documentNode');
+    const endNodes = nodes.filter(n => n.type === 'endNode');
 
     // Sort questions by ID
     const sortedQuestions = questionNodes.sort((a, b) => {
@@ -55,24 +56,37 @@ export const flowToXML = (nodes, edges) => {
 
             xml += `    </options>\n`;
 
-            // Find next question connections from options
-            const nextQuestions = [];
+            // Find next connections from options
+            const nextConnections = [];
             sortedOptions.forEach(optNode => {
                 const outgoingEdges = edges.filter(e =>
-                    e.source === optNode.id && e.type === 'o-to-q'
+                    e.source === optNode.id && (e.type === 'o-to-q' || e.type === 'default' || e.type === 'curved')
                 );
 
                 outgoingEdges.forEach(edge => {
-                    const targetQId = edge.target.replace('q', '');
                     const optId = optNode.id.split('-opt')[1];
-                    nextQuestions.push({ optionId: optId, questionId: targetQId });
+                    const targetNode = nodes.find(n => n.id === edge.target);
+
+                    if (targetNode) {
+                        if (targetNode.type === 'questionNode') {
+                            const targetQId = targetNode.id.replace('q', '');
+                            nextConnections.push({ optionId: optId, questionId: targetQId });
+                        } else if (targetNode.type === 'endNode') {
+                            const targetEndId = targetNode.id.replace('end', '');
+                            nextConnections.push({ optionId: optId, endNodeId: targetEndId });
+                        }
+                    }
                 });
             });
 
-            if (nextQuestions.length > 0) {
+            if (nextConnections.length > 0) {
                 xml += `    <nextQuestions>\n`;
-                nextQuestions.forEach(nq => {
-                    xml += `      <next optionId="${nq.optionId}" questionId="${nq.questionId}"/>\n`;
+                nextConnections.forEach(nc => {
+                    if (nc.questionId) {
+                        xml += `      <next optionId="${nc.optionId}" questionId="${nc.questionId}"/>\n`;
+                    } else if (nc.endNodeId) {
+                        xml += `      <next optionId="${nc.optionId}" endNodeId="${nc.endNodeId}"/>\n`;
+                    }
                 });
                 xml += `    </nextQuestions>\n`;
             }
@@ -80,6 +94,18 @@ export const flowToXML = (nodes, edges) => {
 
         xml += `  </question>\n\n`;
     });
+
+    // Generate EndNodes section
+    if (endNodes.length > 0) {
+        xml += `  <endNodes>\n`;
+        endNodes.forEach(endNode => {
+            const endId = endNode.id.replace('end', '');
+            xml += `    <endNode id="${endId}">\n`;
+            xml += `      <text>${escapeXml(endNode.data.label)}</text>\n`;
+            xml += `    </endNode>\n`;
+        });
+        xml += `  </endNodes>\n\n`;
+    }
 
     // Generate dependencies section
     if (documentNodes.length > 0) {

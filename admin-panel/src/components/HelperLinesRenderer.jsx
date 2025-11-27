@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useStore, Panel } from 'reactflow';
+import { useStore } from 'reactflow';
 
 const HelperLinesRenderer = ({ horizontal, vertical }) => {
     const { transform } = useStore(store => ({
@@ -41,14 +41,15 @@ const HelperLinesRenderer = ({ horizontal, vertical }) => {
     }, [horizontal, vertical, transform]);
 
     return (
-        <Panel
-            position="top-left"
+        <div
+            className="react-flow__helper-lines"
             style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
                 width: '100%',
                 height: '100%',
                 pointerEvents: 'none',
-                margin: 0,
-                padding: 0,
                 zIndex: 10
             }}
         >
@@ -57,10 +58,11 @@ const HelperLinesRenderer = ({ horizontal, vertical }) => {
                 style={{
                     width: '100%',
                     height: '100%',
-                    display: 'block'
+                    display: 'block',
+                    pointerEvents: 'none'
                 }}
             />
-        </Panel>
+        </div>
     );
 };
 

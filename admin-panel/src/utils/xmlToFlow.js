@@ -277,10 +277,46 @@ export const parseXMLToFlow = (xmlString) => {
                             });
                         }
                     }
+                } else if (next['@_endNodeId']) {
+                    const targetId = `end${next['@_endNodeId']}`;
+                    const optionId = next['@_optionId'];
+
+                    if (optionId) {
+                        // O→End edges: Solid, red
+                        const sourceOptId = `${qId}-opt${optionId}`;
+                        edges.push({
+                            id: `${sourceOptId}-to-${targetId}`,
+                            source: sourceOptId,
+                            target: targetId,
+                            sourceHandle: 'bottom',
+                            type: 'default',
+                            animated: false,
+                            markerEnd: { type: MarkerType.ArrowClosed },
+                            style: { stroke: '#dc2626', strokeWidth: 2 }
+                        });
+                    }
                 }
             });
         }
     });
+
+    // Process EndNodes
+    if (jsonObj.questions.endNodes && jsonObj.questions.endNodes.endNode) {
+        const endNodes = Array.isArray(jsonObj.questions.endNodes.endNode) ? jsonObj.questions.endNodes.endNode : [jsonObj.questions.endNodes.endNode];
+        endNodes.forEach((endNode) => {
+            const endId = `end${endNode['@_id']}`;
+            const label = endNode.text ? (typeof endNode.text === 'string' ? endNode.text : endNode.text['#text']) : '';
+
+            nodes.push({
+                id: endId,
+                type: 'endNode',
+                data: {
+                    label: label
+                },
+                position: { x: 0, y: 0 }
+            });
+        });
+    }
 
     // Process Documents
     if (dependencies && dependencies.document) {
