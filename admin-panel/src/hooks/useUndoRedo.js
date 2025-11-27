@@ -16,6 +16,11 @@ export const useUndoRedo = (initialNodes = [], initialEdges = []) => {
         setFuture([]);
     }, []);
 
+    const clearHistory = useCallback(() => {
+        setPast([]);
+        setFuture([]);
+    }, []);
+
     const undo = useCallback((currentNodes, currentEdges, setNodes, setEdges) => {
         setPast((prevPast) => {
             if (prevPast.length === 0) return prevPast;
@@ -56,6 +61,7 @@ export const useUndoRedo = (initialNodes = [], initialEdges = []) => {
         undo,
         redo,
         canUndo,
-        canRedo
+        canRedo,
+        clearHistory
     };
 };

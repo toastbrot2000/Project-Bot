@@ -11,8 +11,12 @@ import ReactFlow, {
     ReactFlowProvider,
     useReactFlow,
     BezierEdge,
-    MarkerType
+    MarkerType,
+    getRectOfNodes,
+    getTransformForBounds
 } from 'reactflow';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import 'reactflow/dist/style.css';
 import { QuestionNode, OptionNode, DocumentNode, EndNode } from './CustomNodes';
 import CustomCurvedEdge from './CustomCurvedEdge';
@@ -25,11 +29,63 @@ import { useHelperLines } from '../hooks/useFlowHelperLines';
 const nodeTypes = {
     questionNode: QuestionNode,
     optionNode: OptionNode,
-    questionNode: QuestionNode,
-    optionNode: OptionNode,
     documentNode: DocumentNode,
     endNode: EndNode
 };
+
+const StartOverlay = ({ onCreate, onLoad }) => (
+    <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(5px)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        color: '#1f2937'
+    }}>
+        <h2 style={{ marginBottom: '30px', fontSize: '24px', fontWeight: 'bold' }}>Welcome to Flow Modeler</h2>
+        <div style={{ display: 'flex', gap: '20px' }}>
+            <button
+                onClick={onCreate}
+                style={{
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    background: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+            >
+                Create New File
+            </button>
+            <button
+                onClick={onLoad}
+                style={{
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    background: 'white',
+                    color: '#2563eb',
+                    border: '2px solid #2563eb',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+            >
+                Load Existing File
+            </button>
+        </div>
+    </div>
+);
 
 const FlowModelerContent = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -42,11 +98,12 @@ const FlowModelerContent = () => {
     const [manuallyMovedNodes, setManuallyMovedNodes] = useState(new Set());
     const { onNodeDrag: onNodeDragHelper, resetHelperLines, HelperLines } = useHelperLines();
     const { screenToFlowPosition, project } = useReactFlow();
-    const { takeSnapshot, undo, redo, canUndo, canRedo } = useUndoRedo();
-
+    const { takeSnapshot, undo, redo, canUndo, canRedo, clearHistory } = useUndoRedo();
     const dragStartSnapshot = useRef(null);
     const fileInputRef = useRef(null);
-    const [flowKey, setFlowKey] = useState(0); // Key to force re-render of ReactFlow
+    const [fileHandle, setFileHandle] = useState(null);
+    const [isProjectLoaded, setIsProjectLoaded] = useState(false);
+    const [flowKey, setFlowKey] = useState(0); // Key to force remount of ReactFlow
 
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
@@ -121,24 +178,7 @@ const FlowModelerContent = () => {
         }));
     }, [screenToFlowPosition, setEdges]);
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const response = await fetch('questions.xml');
-                const text = await response.text();
-                const { nodes: initialNodes, edges: initialEdges } = parseXMLToFlow(text);
-                setNodes(initialNodes);
-                // Attach onWaypointDrag to loaded edges
-                setEdges(initialEdges.map(e => ({
-                    ...e,
-                    data: { ...e.data, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop }
-                })));
-            } catch (error) {
-                console.error('Error loading XML:', error);
-            }
-        };
-        loadData();
-    }, [setNodes, setEdges, onWaypointDrag]);
+    // Removed auto-load of questions.xml
 
     const getEdgeParams = useCallback((sourceNode, targetNode) => {
         let type = 'default';
@@ -530,45 +570,235 @@ const FlowModelerContent = () => {
         setEdges(eds => eds.map(e => ({ ...e, animated: e.selected ? true : !globalAnimate })));
     };
 
-    const handleSave = useCallback(() => {
+    const loadFlowFromText = useCallback((text) => {
+        try {
+            const { nodes: newNodes, edges: newEdges } = parseXMLToFlow(text);
+
+            // Clear selection and manual moves
+            setSelectedNode(null);
+            setSelectedEdge(null);
+            setSelectedWaypoint(null);
+            setManuallyMovedNodes(new Set());
+
+            // Force clear nodes and edges first
+            setNodes([]);
+            setEdges([]);
+
+            // Set new state
+            setNodes(newNodes);
+            setEdges(newEdges.map(e => ({
+                ...e,
+                data: { ...e.data, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop }
+            })));
+        } catch (error) {
+            console.error('Error parsing XML:', error);
+            alert('Error loading XML file. Please check the file format.');
+        }
+    }, [nodes, edges, takeSnapshot, setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop]);
+
+    const handleSave = useCallback(async () => {
         const xml = flowToXML(nodes, edges);
-        downloadXML(xml);
+
+        if (fileHandle && window.showSaveFilePicker) {
+            try {
+                const writable = await fileHandle.createWritable();
+                await writable.write(xml);
+                await writable.close();
+                // Optional: could show a toast here
+            } catch (err) {
+                console.error('Error saving to file:', err);
+                alert('Failed to save file.');
+            }
+        } else {
+            downloadXML(xml);
+        }
+    }, [nodes, edges, fileHandle]);
+
+    const handleSaveAs = useCallback(async () => {
+        const xml = flowToXML(nodes, edges);
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    types: [{
+                        description: 'XML Files',
+                        accept: { 'application/xml': ['.xml'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(xml);
+                await writable.close();
+                setFileHandle(handle);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error saving file:', err);
+                    alert('Failed to save file.');
+                }
+            }
+        } else {
+            downloadXML(xml);
+        }
     }, [nodes, edges]);
 
-    const handleLoad = useCallback(() => {
-        fileInputRef.current?.click();
-    }, []);
-    ref = { fileInputRef }
-    onChange = { handleFileChange }
-    accept = ".xml"
-    style = {{ display: 'none' }
-}
+    const handleCreateNew = useCallback(async () => {
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    types: [{
+                        description: 'XML Files',
+                        accept: { 'application/xml': ['.xml'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                const emptyXml = '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <nodes></nodes>\n  <edges></edges>\n</root>';
+                await writable.write(emptyXml);
+                await writable.close();
+
+                setFileHandle(handle);
+                setNodes([]);
+                setEdges([]);
+                setIsProjectLoaded(true);
+                setFlowKey(prev => prev + 1); // Force remount
+                clearPositions(); // Clear saved positions for new file
+                clearHistory(); // Clear undo history
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error creating file:', err);
+                    alert('Failed to create file.');
+                }
+            }
+        } else {
+            // Fallback for browsers without File System Access API
+            const fileName = prompt('Enter file name for new project:', 'new_project.xml');
+            if (fileName) {
+                setNodes([]);
+                setEdges([]);
+                setIsProjectLoaded(true);
+                setFileHandle(null); // No handle in fallback mode
+                setFlowKey(prev => prev + 1); // Force remount
+                clearPositions(); // Clear saved positions for new file
+                clearHistory(); // Clear undo history
+            }
+        }
+    }, [setNodes, setEdges, clearHistory]);
+
+    const handleLoad = useCallback(async () => {
+        if (window.showOpenFilePicker) {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'XML Files',
+                        accept: { 'application/xml': ['.xml'] },
+                    }],
+                    multiple: false,
+                });
+                const file = await handle.getFile();
+                const text = await file.text();
+
+                loadFlowFromText(text);
+                setFileHandle(handle);
+                setIsProjectLoaded(true);
+                setFlowKey(prev => prev + 1); // Force remount
+                clearPositions(); // Clear saved positions for new file
+                clearHistory(); // Clear undo history
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error loading file:', err);
+                    alert('Failed to load file.');
+                }
+            }
+        } else {
+            fileInputRef.current?.click();
+        }
+    }, [loadFlowFromText]);
+
+    const handleFileChange = useCallback(async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            loadFlowFromText(text);
+            setFileHandle(null); // Reset handle as this is a new file from input
+            setIsProjectLoaded(true);
+            setFlowKey(prev => prev + 1); // Force remount
+            clearPositions(); // Clear saved positions for new file
+            clearHistory(); // Clear undo history
+
+            // Reset file input
+            event.target.value = '';
+        } catch (error) {
+            console.error('Error reading file:', error);
+            alert('Error reading file.');
+        }
+    }, [loadFlowFromText, clearHistory]);
+
+    const handleExportPDF = useCallback(() => {
+        // We need to fit the view to include all nodes before capturing
+        const nodesBounds = getRectOfNodes(nodes);
+        const transform = getTransformForBounds(nodesBounds, nodesBounds.width, nodesBounds.height, 0.5, 2);
+
+        // Temporarily update the view to fit everything? 
+        // Actually, html2canvas captures what's in the DOM. 
+        // If we want to capture the whole flow, we might need to ensure it's visible or capture the specific container.
+        // The React Flow viewport might be larger than the screen.
+
+        // A common strategy is to select the .react-flow__viewport element
+        const viewport = document.querySelector('.react-flow__viewport');
+
+        if (!viewport) return;
+
+        html2canvas(viewport, {
+            scale: 2 // Improve resolution
+        }).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+            });
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save('flow-export.pdf');
+        });
+    }, [nodes]);
+
+    return (
+        <div style={{ width: '100%', height: '100vh' }}>
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".xml"
+                style={{ display: 'none' }}
             />
-    < ReactFlow
-key = { flowKey }
-nodes = { nodes }
-edges = { edges }
-onNodesChange = { onNodesChange }
-onEdgesChange = { onEdgesChange }
-onConnect = { onConnect }
-onReconnect = { onReconnect }
-onNodeDragStart = { onNodeDragStart }
-onNodeDragStop = { onNodeDragStop }
-onNodeDrag = { onNodeDrag }
-nodeTypes = { nodeTypes }
-edgeTypes = { edgeTypes }
-fitView
-deleteKeyCode = { null}
-onNodeClick = { onNodeClick }
-onEdgeClick = { onEdgeClick }
-onPaneClick = { onPaneClick }
-onDragOver = { onDragOver }
-onDrop = { onDrop }
-selectionOnDrag = { true}
-selectionMode = "partial"
-panOnDrag = { [1]}
-panOnScroll = { true}
-    >
+            {!isProjectLoaded && <StartOverlay onCreate={handleCreateNew} onLoad={handleLoad} />}
+            <ReactFlow
+                key={flowKey}
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onReconnect={onReconnect}
+                onNodeDragStart={onNodeDragStart}
+                onNodeDragStop={onNodeDragStop}
+                onNodeDrag={onNodeDrag}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                fitView
+                deleteKeyCode={null}
+                onNodeClick={onNodeClick}
+                onEdgeClick={onEdgeClick}
+                onPaneClick={onPaneClick}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+                selectionOnDrag={true}
+                selectionMode="partial"
+                panOnDrag={[1]}
+                panOnScroll={true}
+            >
                 <Background />
                 <HelperLines />
                 <Controls />
@@ -706,7 +936,24 @@ panOnScroll = { true}
                                 fontWeight: '500'
                             }}
                         >
-                            💾 Save XML
+                            {fileHandle ? '💾 Save' : '💾 Save XML'}
+                        </button>
+                        <button
+                            onClick={handleCreateNew}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                marginBottom: '8px',
+                                background: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            📄 New File
                         </button>
                         <button
                             onClick={handleLoad}
@@ -723,7 +970,41 @@ panOnScroll = { true}
                                 fontWeight: '500'
                             }}
                         >
-                            📂 Load XML
+                            📂 Open File
+                        </button>
+                        <button
+                            onClick={handleSaveAs}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                marginBottom: '8px',
+                                background: '#059669',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            💾 Save As...
+                        </button>
+                        <button
+                            onClick={handleExportPDF}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                marginBottom: '8px',
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            📄 Export PDF
                         </button>
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                             <button
@@ -820,8 +1101,8 @@ panOnScroll = { true}
                         )}
                     </div>
                 </Panel>
-            </ReactFlow >
-        </div >
+            </ReactFlow>
+        </div>
     );
 };
 

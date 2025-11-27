@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
 import TextModal from './TextModal';
 
@@ -14,6 +14,12 @@ export const QuestionNode = memo(({ data, id, selected }) => {
     const [questionText, setQuestionText] = useState(data.label);
     const [tooltipText, setTooltipText] = useState(data.tooltip || '');
     const [tempTooltipText, setTempTooltipText] = useState(data.tooltip || '');
+
+    useEffect(() => {
+        setQuestionText(data.label);
+        setTooltipText(data.tooltip || '');
+        setTempTooltipText(data.tooltip || '');
+    }, [data.label, data.tooltip]);
 
     const handleQuestionDoubleClick = () => {
         setIsEditingQuestion(true);
@@ -150,6 +156,10 @@ export const OptionNode = memo(({ data, id, selected }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [optionText, setOptionText] = useState(data.label);
 
+    useEffect(() => {
+        setOptionText(data.label);
+    }, [data.label]);
+
     const handleDoubleClick = () => {
         setIsEditing(true);
     };
@@ -260,6 +270,13 @@ export const DocumentNode = memo(({ data, id, selected }) => {
     const [docType, setDocType] = useState(data.docType || 'optional');
     const [descriptionText, setDescriptionText] = useState(data.description || '');
     const [tempDescriptionText, setTempDescriptionText] = useState(data.description || '');
+
+    useEffect(() => {
+        setDocText(data.label);
+        setDocType(data.docType || 'optional');
+        setDescriptionText(data.description || '');
+        setTempDescriptionText(data.description || '');
+    }, [data.label, data.docType, data.description]);
 
     const handleLabelDoubleClick = () => {
         setIsEditingLabel(true);
@@ -449,6 +466,10 @@ export const WaypointNode = memo(({ data, isConnectable }) => {
 export const EndNode = memo(({ data, id, selected }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [labelText, setLabelText] = useState(data.label || 'End');
+
+    useEffect(() => {
+        setLabelText(data.label || 'End');
+    }, [data.label]);
 
     const handleDoubleClick = () => {
         setIsEditing(true);

@@ -1,4 +1,0 @@
-- create as standalone app, browser-based. editing a local file on the computer of the user. (initially, the file is either opened in the file explorer or created on the client computer. When saving, this file is overwritten.
-
-
-Add export to PDF and export to PNG.

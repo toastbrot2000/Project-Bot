@@ -65,6 +65,10 @@
       <option id="1">Yes</option>
       <option id="2">No</option>
     </options>
+    <nextQuestions>
+      <next optionId="1" endNodeId="Node-1764263940922"/>
+      <next optionId="2" endNodeId="Node-1764263940922"/>
+    </nextQuestions>
   </question>
 
   <question id="3">
@@ -73,6 +77,10 @@
       <option id="1">Yes</option>
       <option id="2">No</option>
     </options>
+    <nextQuestions>
+      <next optionId="1" endNodeId="Node-1764263940922"/>
+      <next optionId="2" endNodeId="Node-1764263940922"/>
+    </nextQuestions>
   </question>
 
   <question id="4">
@@ -81,7 +89,17 @@
       <option id="1">Yes</option>
       <option id="2">No</option>
     </options>
+    <nextQuestions>
+      <next optionId="1" endNodeId="Node-1764263940922"/>
+      <next optionId="2" endNodeId="Node-1764263940922"/>
+    </nextQuestions>
   </question>
+
+  <endNodes>
+    <endNode id="Node-1764263940922">
+      <text>New endNode</text>
+    </endNode>
+  </endNodes>
 
   <dependencies>
     <document type="mandatory">
@@ -95,17 +113,11 @@
     <document type="mandatory">
       <text>Enrollment certificate</text>
       <description>Please upload with stamp</description>
-      <conditions>
-        <condition questionId="3" optionId="1"/>
-      </conditions>
     </document>
 
     <document type="mandatory">
       <text>Residence title</text>
       <description>please upload your residence title</description>
-      <conditions>
-        <condition questionId="4" optionId="1"/>
-      </conditions>
     </document>
 
   </dependencies>

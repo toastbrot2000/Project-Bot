@@ -16,8 +16,6 @@
     <nextQuestions>
       <next optionId="1" questionId="2"/>
       <next optionId="2" questionId="2"/>
-      <next optionId="3" questionId="3"/>
-      <next optionId="4" questionId="3"/>
     </nextQuestions>
   </question>
 
@@ -30,27 +28,6 @@
     </options>
     <nextQuestions>
       <next optionId="1" questionId="4"/>
-      <next optionId="2" questionId="3"/>
-      <next optionId="3" questionId="7"/>
-    </nextQuestions>
-  </question>
-
-  <question id="3">
-    <text>Let&apos;s talk languages! 🇩🇪 What&apos;s your current level of German?</text>
-    <tooltip>
-      Knowing German opens many doors, but no worries if you&apos;re still learning!
-    </tooltip>
-    <options>
-      <option id="1">🎖️ Fluent or advanced</option>
-      <option id="2">📘 Intermediate (B1-B2)</option>
-      <option id="3">📗 Beginner (A1-A2)</option>
-      <option id="4">🚫 I don&apos;t speak German</option>
-    </options>
-    <nextQuestions>
-      <next optionId="1" questionId="4"/>
-      <next optionId="2" questionId="4"/>
-      <next optionId="3" questionId="4"/>
-      <next optionId="4" questionId="4"/>
     </nextQuestions>
   </question>
 
@@ -92,22 +69,6 @@
       <option id="2">🐾 Pets</option>
       <option id="3">🚶 Just me!</option>
     </options>
-  </question>
-
-  <question id="7">
-    <text>What kind of support are you looking for in your job search?</text>
-    <options>
-      <option id="1">Resume/CV review</option>
-      <option id="2">Interview preparation</option>
-      <option id="3">Job portal recommendations</option>
-      <option id="4">General guidance</option>
-    </options>
-    <nextQuestions>
-      <next optionId="1" questionId="3"/>
-      <next optionId="2" questionId="3"/>
-      <next optionId="3" questionId="3"/>
-      <next optionId="4" questionId="3"/>
-    </nextQuestions>
   </question>
 
   <dependencies>
