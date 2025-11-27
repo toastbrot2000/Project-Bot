@@ -44,9 +44,9 @@ export const QuestionNode = memo(({ data, id, selected }) => {
             style={{
                 padding: '15px 20px',
                 borderRadius: '8px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: selected ? '2px solid #f59e0b' : '2px solid #5a67d8',
+                background: '#f0fdf4',
+                color: '#15803d',
+                border: selected ? '2px solid #f59e0b' : '2px solid #22c55e',
                 minWidth: '250px',
                 maxWidth: '300px',
                 boxShadow: selected ? '0 0 0 4px rgba(245, 158, 11, 0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
@@ -111,7 +111,7 @@ export const QuestionNode = memo(({ data, id, selected }) => {
             <div style={{
                 marginTop: '10px',
                 paddingTop: '8px',
-                borderTop: '1px solid rgba(255,255,255,0.3)',
+                borderTop: '1px solid rgba(22, 163, 74, 0.3)',
                 fontSize: '12px',
                 minHeight: '20px'
             }}>
@@ -121,7 +121,7 @@ export const QuestionNode = memo(({ data, id, selected }) => {
                         cursor: 'pointer',
                         fontStyle: tooltipText ? 'normal' : 'italic',
                         opacity: tooltipText ? 1 : 0.7,
-                        color: 'rgba(255,255,255,0.9)',
+                        color: '#166534',
                         lineHeight: '1.4'
                     }}
                     title="Double-click to edit tooltip"
@@ -428,31 +428,98 @@ export const DocumentNode = memo(({ data, id, selected }) => {
 export const WaypointNode = memo(({ data, isConnectable }) => {
     return (
         <div style={{
-            width: '14px',
-            height: '14px',
+            width: '8px',
+            height: '8px',
             borderRadius: '50%',
-            background: '#6b7280',
-            border: '2px solid white',
-            boxShadow: '0 0 0 1px #6b7280',
+            background: '#9ca3af', // Neutral gray
+            border: '1px solid #4b5563', // Darker gray border
             cursor: 'grab',
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 10
+            zIndex: 10,
+            transform: 'translate(-50%, -50%)' // Ensure true centering
         }}>
-            <Handle
-                type="target"
-                position={Position.Left}
-                isConnectable={isConnectable}
-                style={{ opacity: 0, width: '100%', height: '100%', left: 0, top: 0, border: 'none', background: 'transparent' }}
-            />
-            <Handle
-                type="source"
-                position={Position.Right}
-                isConnectable={isConnectable}
-                style={{ opacity: 0, width: '100%', height: '100%', left: 0, top: 0, border: 'none', background: 'transparent' }}
-            />
+            {/* No handles needed as the edge is drawn through this node */}
+        </div>
+    );
+});
+
+export const EndNode = memo(({ data, id, selected }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [labelText, setLabelText] = useState(data.label || 'End');
+
+    const handleDoubleClick = () => {
+        setIsEditing(true);
+    };
+
+    const handleBlur = () => {
+        setIsEditing(false);
+        if (data.onUpdate) {
+            data.onUpdate(id, { ...data, label: labelText });
+        }
+    };
+
+    return (
+        <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: '#fee2e2', // Light red
+            border: selected ? '2px solid #ef4444' : '2px solid #dc2626', // Red border
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxShadow: selected ? '0 0 0 4px rgba(239, 68, 68, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
+            transition: 'all 0.2s ease'
+        }}>
+            <Handle type="target" position={Position.Top} style={{ background: '#dc2626' }} />
+
+            <div style={{ zIndex: 1, position: 'relative', width: '100%', textAlign: 'center' }}>
+                {isEditing ? (
+                    <textarea
+                        value={labelText}
+                        onChange={(e) => setLabelText(e.target.value)}
+                        onBlur={handleBlur}
+                        autoFocus
+                        style={{
+                            fontSize: '10px',
+                            fontWeight: '600',
+                            textAlign: 'center',
+                            background: 'rgba(255,255,255,0.9)',
+                            color: '#7f1d1d',
+                            border: 'none',
+                            borderRadius: '4px',
+                            padding: '2px',
+                            width: '50px',
+                            height: '30px',
+                            resize: 'none',
+                            overflow: 'hidden',
+                            display: 'block',
+                            margin: '0 auto'
+                        }}
+                    />
+                ) : (
+                    <div
+                        style={{
+                            fontSize: '10px',
+                            fontWeight: '700',
+                            color: '#991b1b',
+                            textAlign: 'center',
+                            cursor: 'text',
+                            wordWrap: 'break-word',
+                            maxWidth: '50px',
+                            lineHeight: '1.2',
+                            margin: '0 auto'
+                        }}
+                        onDoubleClick={handleDoubleClick}
+                    >
+                        {labelText}
+                    </div>
+                )}
+            </div>
         </div>
     );
 });

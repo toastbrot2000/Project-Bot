@@ -1,5 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import dagre from 'dagre';
+import { MarkerType } from 'reactflow';
 import { loadPositions } from './positionManager';
 
 const parser = new XMLParser({
@@ -138,98 +139,24 @@ const getLayoutedElements = (nodes, edges) => {
         previousDocY = targetY;
     });
 
-    // Reconstruct Waypoints
-    if (savedPositions.waypoints && savedPositions.waypoints.length > 0) {
-        // Add waypoint nodes
-        savedPositions.waypoints.forEach(wp => {
-            nodes.push(wp);
-        });
+    // Apply saved edge data (waypoints)
+    if (savedPositions.edgeData) {
+        edges.forEach(edge => {
+            if (savedPositions.edgeData[edge.id]) {
+                const savedData = savedPositions.edgeData[edge.id];
+                edge.type = savedData.type || 'curved';
 
-        // Add waypoint edges
-        if (savedPositions.waypointEdges) {
-            savedPositions.waypointEdges.forEach(wpEdge => {
-                edges.push(wpEdge);
-            });
-        }
-
-        // Remove original edges that are now routed through waypoints
-        // Logic: If we have A->W and W->B, we should remove A->B if it exists
-        // But A->B might have a different ID than what we can easily guess.
-        // However, we can look at the waypoint edges to find the original source and target.
-        // Actually, simpler: If we have a waypoint edge A->W, we know A is connected to something else via W.
-        // But we need to know what B is to remove A->B.
-        // Let's assume the saved waypoint edges are sufficient to define the graph.
-        // But we generated "logical" edges from XML. We need to remove those that conflict.
-
-        // Strategy:
-        // 1. Identify all "logical" connections that are now handled by waypoints.
-        //    This is hard because a chain A->W1->W2->B replaces A->B.
-        // 2. Alternative: When saving, we saved the *entire* edge set involving waypoints.
-        //    So we just need to remove any edge in `edges` that connects the same Source/Target pair 
-        //    as a chain of waypoints? No, that's expensive to calculate.
-
-        // 3. Better Strategy: 
-        //    The `waypointEdges` contain edges like `q1-opt1-waypoint-123` (Source->W) and `waypoint-123-q2` (W->Target).
-        //    The original edge was `q1-opt1-to-q2`.
-        //    We can't easily match IDs.
-        //    BUT, we can check if there is a path from A to B via waypoints.
-
-        //    Let's try a heuristic:
-        //    For every waypoint edge `Source -> Waypoint` or `Waypoint -> Target`, 
-        //    we don't need to remove anything yet.
-        //    But we need to remove the direct edge `Source -> Target`.
-
-        //    Let's build a map of "Routed Connections": Source -> Target
-        //    Traverse from every Source that connects to a Waypoint.
-        //    Follow the path until we hit a non-waypoint node.
-        //    That is the Target.
-        //    Then remove the direct edge Source -> Target.
-
-        const routedConnections = [];
-
-        const findTarget = (currentId, visited = new Set()) => {
-            if (visited.has(currentId)) return null;
-            visited.add(currentId);
-
-            // Find outgoing edges from this node
-            // We need to look in `savedPositions.waypointEdges`
-            const outgoing = savedPositions.waypointEdges.filter(e => e.source === currentId);
-
-            for (const edge of outgoing) {
-                if (edge.target.startsWith('waypoint-')) {
-                    return findTarget(edge.target, visited);
-                } else {
-                    return edge.target;
+                let waypoints = [];
+                if (savedData.waypoints) {
+                    waypoints = savedData.waypoints;
+                } else if (savedData.waypoint) {
+                    waypoints = [savedData.waypoint];
                 }
-            }
-            return null;
-        };
 
-        // Find all sources that connect to a waypoint
-        const waypointSources = new Set();
-        savedPositions.waypointEdges.forEach(e => {
-            if (!e.source.startsWith('waypoint-')) {
-                waypointSources.add(e.source);
-            }
-        });
-
-        waypointSources.forEach(sourceId => {
-            const targetId = findTarget(sourceId); // This finds the target via waypoints (using saved edges)
-            // Wait, findTarget needs to start traversing from the waypoint connected to sourceId.
-            // The `findTarget` above starts at `currentId`.
-            // If `currentId` is `sourceId`, it finds edge to Waypoint, then recurses.
-            // Yes, that works.
-
-            if (targetId) {
-                routedConnections.push({ source: sourceId, target: targetId });
-            }
-        });
-
-        // Remove direct edges that match routed connections
-        routedConnections.forEach(({ source, target }) => {
-            const edgeIndex = edges.findIndex(e => e.source === source && e.target === target);
-            if (edgeIndex !== -1) {
-                edges.splice(edgeIndex, 1);
+                edge.data = {
+                    ...edge.data,
+                    waypoints
+                };
             }
         });
     }
@@ -301,6 +228,7 @@ export const parseXMLToFlow = (xmlString) => {
                     targetHandle: 'top',
                     type: 'q-to-o',
                     animated: false,
+                    markerEnd: { type: MarkerType.ArrowClosed },
                     style: { stroke: '#9ca3af', strokeWidth: 1 }
                 });
             });
@@ -324,6 +252,7 @@ export const parseXMLToFlow = (xmlString) => {
                             sourceHandle: 'bottom',
                             type: 'o-to-q',
                             animated: false,
+                            markerEnd: { type: MarkerType.ArrowClosed },
                             style: { stroke: '#333', strokeWidth: 2, strokeDasharray: '5,5' }
                         });
                     } else {
@@ -341,6 +270,7 @@ export const parseXMLToFlow = (xmlString) => {
                                         sourceHandle: 'bottom',
                                         type: 'o-to-q',
                                         animated: false,
+                                        markerEnd: { type: MarkerType.ArrowClosed },
                                         style: { stroke: '#333', strokeWidth: 2, strokeDasharray: '5,5' }
                                     });
                                 }
@@ -383,6 +313,7 @@ export const parseXMLToFlow = (xmlString) => {
                         sourceHandle: 'left',
                         type: 'o-to-d',
                         animated: false,
+                        markerEnd: { type: MarkerType.ArrowClosed },
                         style: { stroke: '#007bff', strokeWidth: 2, strokeDasharray: '5,5' }
                     });
                 });

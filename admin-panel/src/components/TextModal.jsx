@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholder = "Enter text..." }) => {
     if (!isOpen) return null;
@@ -9,7 +10,7 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
         }
     };
 
-    return (
+    return ReactDOM.createPortal(
         <div
             style={{
                 position: 'fixed',
@@ -24,6 +25,7 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
                 zIndex: 10000
             }}
             onClick={handleOverlayClick}
+            onMouseDown={(e) => e.stopPropagation()} // Prevent drag events from reaching underlying elements
         >
             <div
                 style={{
@@ -141,7 +143,8 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

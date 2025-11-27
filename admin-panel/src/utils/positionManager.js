@@ -11,43 +11,34 @@ const STORAGE_KEY = 'flowModeler_nodePositions';
 export const savePositions = (nodes, manuallyMovedNodes, edges) => {
     const data = {
         positions: {},
-        waypoints: [],
-        waypointEdges: []
+        edgeData: {}
     };
 
     // Save positions for manually moved nodes
     nodes.forEach(node => {
         if (manuallyMovedNodes.has(node.id)) {
-            // If it's a waypoint, save full details
-            if (node.type === 'waypointNode') {
-                data.waypoints.push({
-                    id: node.id,
-                    type: node.type,
-                    position: node.position,
-                    data: node.data
-                });
-            } else {
-                // Normal node - just save position
-                data.positions[node.id] = {
-                    x: node.position.x,
-                    y: node.position.y,
-                    manual: true
-                };
-            }
+            data.positions[node.id] = {
+                x: node.position.x,
+                y: node.position.y,
+                manual: true
+            };
         }
     });
 
-    // Save edges connected to waypoints
+    // Save edge data (waypoints)
     if (edges) {
         edges.forEach(edge => {
-            if (edge.source.startsWith('waypoint-') || edge.target.startsWith('waypoint-')) {
-                data.waypointEdges.push(edge);
+            if (edge.data && (edge.data.waypoints || edge.data.waypoint)) {
+                data.edgeData[edge.id] = {
+                    waypoints: edge.data.waypoints || [edge.data.waypoint],
+                    type: edge.type
+                };
             }
         });
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    return Object.keys(data.positions).length + data.waypoints.length;
+    return Object.keys(data.positions).length + Object.keys(data.edgeData).length;
 };
 
 /**
@@ -62,14 +53,17 @@ export const loadPositions = () => {
         const parsed = JSON.parse(saved);
 
         // Handle legacy format (just positions object)
-        if (!parsed.positions && !parsed.waypoints) {
-            return { positions: parsed, waypoints: [], waypointEdges: [] };
+        if (!parsed.positions && !parsed.edgeData) {
+            return { positions: parsed, edgeData: {} };
         }
 
-        return parsed;
+        return {
+            positions: parsed.positions || {},
+            edgeData: parsed.edgeData || {}
+        };
     } catch (error) {
         console.error('Error loading positions:', error);
-        return { positions: {}, waypoints: [], waypointEdges: [] };
+        return { positions: {}, edgeData: {} };
     }
 };
 

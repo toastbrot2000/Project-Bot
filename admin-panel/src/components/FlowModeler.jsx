@@ -5,281 +5,280 @@ import ReactFlow, {
     useNodesState,
     useEdgesState,
     addEdge,
+    reconnectEdge,
     MiniMap,
     Panel,
     ReactFlowProvider,
     useReactFlow,
-    BezierEdge
+    BezierEdge,
+    MarkerType
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { QuestionNode, OptionNode, DocumentNode, EndNode } from './CustomNodes';
+import CustomCurvedEdge from './CustomCurvedEdge';
 import { parseXMLToFlow } from '../utils/xmlToFlow';
 import { savePositions, clearPositions } from '../utils/positionManager';
 import { flowToXML, downloadXML } from '../utils/flowToXML';
-import { QuestionNode, OptionNode, DocumentNode, WaypointNode } from './CustomNodes';
+import { useUndoRedo } from '../hooks/useUndoRedo';
+import { useHelperLines } from '../hooks/useFlowHelperLines';
+
+const nodeTypes = {
+    questionNode: QuestionNode,
+    optionNode: OptionNode,
+    questionNode: QuestionNode,
+    optionNode: OptionNode,
+    documentNode: DocumentNode,
+    endNode: EndNode
+};
 
 const FlowModelerContent = () => {
-    const reactFlowWrapper = useRef(null);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [edgeVisibility, setEdgeVisibility] = useState({ qToO: true, oToQ: true, doc: true });
+    const [globalAnimate, setGlobalAnimate] = useState(false);
     const [selectedNode, setSelectedNode] = useState(null);
     const [selectedEdge, setSelectedEdge] = useState(null);
-    const [globalAnimate, setGlobalAnimate] = useState(false);
+    const [selectedWaypoint, setSelectedWaypoint] = useState(null); // { edgeId, index }
     const [manuallyMovedNodes, setManuallyMovedNodes] = useState(new Set());
-    const { screenToFlowPosition } = useReactFlow();
+    const { onNodeDrag: onNodeDragHelper, resetHelperLines, HelperLines } = useHelperLines();
+    const { screenToFlowPosition, project } = useReactFlow();
+    const { takeSnapshot, undo, redo, canUndo, canRedo } = useUndoRedo();
+    const dragStartSnapshot = useRef(null);
 
-    // Edge Visibility State
-    const [edgeVisibility, setEdgeVisibility] = useState({
-        qToO: true, // Question -> Option
-        oToQ: true, // Option -> Question
-        doc: true   // Option -> Document
-    });
-
-    // Handle node data updates from double-click edits
-    const handleNodeUpdate = useCallback((nodeId, newData) => {
-        setNodes((nds) =>
-            nds.map((node) =>
-                node.id === nodeId ? { ...node, data: newData } : node
-            )
-        );
-    }, [setNodes]);
-
-    // Define custom node types with update handler
-    const nodeTypes = useMemo(() => ({
-        questionNode: (props) => <QuestionNode {...props} data={{ ...props.data, onUpdate: handleNodeUpdate }} />,
-        optionNode: (props) => <OptionNode {...props} data={{ ...props.data, onUpdate: handleNodeUpdate }} />,
-        documentNode: (props) => <DocumentNode {...props} data={{ ...props.data, onUpdate: handleNodeUpdate }} />,
-        waypointNode: WaypointNode
-    }), [handleNodeUpdate]);
-
-    // Define edge types mapping to standard BezierEdge to allow custom type strings for filtering
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
         'o-to-q': BezierEdge,
         'o-to-d': BezierEdge,
-        'default': BezierEdge
+        'default': BezierEdge,
+        'curved': CustomCurvedEdge
     }), []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/questions.xml');
-                const text = await response.text();
-                const { nodes: layoutedNodes, edges: layoutedEdges } = parseXMLToFlow(text);
+    const onWaypointDragStart = useCallback(() => {
+        dragStartSnapshot.current = { nodes, edges };
+    }, [nodes, edges]);
 
-                setNodes(layoutedNodes);
-                setEdges(layoutedEdges);
+    const onWaypointDragStop = useCallback(() => {
+        if (dragStartSnapshot.current) {
+            const { nodes: oldNodes, edges: oldEdges } = dragStartSnapshot.current;
+            // Check if edges changed (waypoints only)
+            // We map to a simplified structure to ignore 'selected', 'selectedWaypointIndex', etc.
+            const getEdgeState = (eds) => eds.map(e => ({
+                id: e.id,
+                waypoints: e.data?.waypoints,
+                waypoint: e.data?.waypoint // legacy
+            }));
+
+            const edgesChanged = JSON.stringify(getEdgeState(edges)) !== JSON.stringify(getEdgeState(oldEdges));
+            if (edgesChanged) {
+                takeSnapshot(oldNodes, oldEdges);
+            }
+            dragStartSnapshot.current = null;
+        }
+    }, [nodes, edges, takeSnapshot]);
+
+    const onWaypointClick = useCallback((edgeId, index) => {
+        setSelectedWaypoint({ edgeId, index });
+        setSelectedNode(null);
+        setSelectedEdge(null);
+
+        // Update edge data to include selected waypoint index
+        setEdges((eds) => eds.map(e => {
+            if (e.id === edgeId) {
+                return {
+                    ...e,
+                    data: {
+                        ...e.data,
+                        selectedWaypointIndex: index
+                    }
+                };
+            } else if (e.data?.selectedWaypointIndex !== undefined) {
+                // Clear selection from other edges
+                const { selectedWaypointIndex, ...restData } = e.data;
+                return { ...e, data: restData };
+            }
+            return e;
+        }));
+    }, [setEdges]);
+
+    const onWaypointDrag = useCallback((edgeId, index, screenPos) => {
+        const flowPos = screenToFlowPosition(screenPos);
+        setEdges((eds) => eds.map(e => {
+            if (e.id === edgeId) {
+                const waypoints = [...(e.data.waypoints || [e.data.waypoint])];
+                waypoints[index] = { x: flowPos.x, y: flowPos.y };
+                return {
+                    ...e,
+                    data: {
+                        ...e.data,
+                        waypoints
+                    }
+                };
+            }
+            return e;
+        }));
+    }, [screenToFlowPosition, setEdges]);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const response = await fetch('questions.xml');
+                const text = await response.text();
+                const { nodes: initialNodes, edges: initialEdges } = parseXMLToFlow(text);
+                setNodes(initialNodes);
+                // Attach onWaypointDrag to loaded edges
+                setEdges(initialEdges.map(e => ({
+                    ...e,
+                    data: { ...e.data, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop }
+                })));
             } catch (error) {
-                console.error("Error fetching or parsing XML:", error);
+                console.error('Error loading XML:', error);
             }
         };
+        loadData();
+    }, [setNodes, setEdges, onWaypointDrag]);
 
-        fetchData();
-    }, [setNodes, setEdges]);
+    const getEdgeParams = useCallback((sourceNode, targetNode) => {
+        let type = 'default';
+        let animated = false;
+        let markerEnd = { type: MarkerType.ArrowClosed };
+        let style = { strokeWidth: 2 };
 
-    // Update edge visibility when toggles change
-    useEffect(() => {
-        setEdges((eds) => eds.map((edge) => {
-            let isHidden = false;
-            if (edge.type === 'q-to-o' && !edgeVisibility.qToO) isHidden = true;
-            if (edge.type === 'o-to-q' && !edgeVisibility.oToQ) isHidden = true;
-            if (edge.type === 'o-to-d' && !edgeVisibility.doc) isHidden = true; // Assuming o-to-d type for docs
-            // Check if edge connects to a document (fallback if type isn't explicit)
-            if (edge.target.startsWith('doc-') && !edgeVisibility.doc) isHidden = true;
+        // Q→O edges: Thin, solid, gray
+        if (sourceNode?.type === 'questionNode' && targetNode?.type === 'optionNode') {
+            type = 'q-to-o';
+            style = { stroke: '#9ca3af', strokeWidth: 1 };
+        }
+        // O→Q edges: Bold, dashed, dark gray
+        else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'questionNode') {
+            type = 'o-to-q';
+            style = { stroke: '#333', strokeWidth: 2, strokeDasharray: '5,5' };
+        }
+        // O→D edges: Bold, dashed, blue
+        else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'documentNode') {
+            type = 'o-to-d';
+            style = { stroke: '#007bff', strokeWidth: 2, strokeDasharray: '5,5' };
+        }
+        // Any→End edges: Solid, red/gray
+        else if (targetNode?.type === 'endNode') {
+            type = 'default';
+            style = { stroke: '#dc2626', strokeWidth: 2 };
+        }
 
-            return { ...edge, hidden: isHidden };
-        }));
-    }, [edgeVisibility, setEdges]);
+        return { type, animated, markerEnd, style };
+    }, []);
 
     const onConnect = useCallback((params) => {
-        // Determine edge type and styling based on source/target
-        const isQuestionSource = params.source.startsWith('q') && !params.source.includes('-opt');
-        const isDocumentTarget = params.target.startsWith('doc-') || params.target.startsWith('documentNode-');
+        takeSnapshot(nodes, edges);
+        const { source, target } = params;
 
-        let edgeType = 'default';
-        let edgeStyle = { stroke: '#333', strokeWidth: 2, strokeDasharray: '5,5' };
+        // Prevent self-loops
+        if (source === target) return;
 
-        if (isQuestionSource) {
-            // Q→O: Thin, solid
-            edgeType = 'q-to-o';
-            edgeStyle = { stroke: '#9ca3af', strokeWidth: 1 };
-        } else if (isDocumentTarget) {
-            // O→D: Bold, dashed (Blueish for docs maybe?)
-            edgeType = 'o-to-d';
-            edgeStyle = { stroke: '#007bff', strokeWidth: 2, strokeDasharray: '5,5' };
-        } else {
-            // O→Q: Bold, dashed
-            edgeType = 'o-to-q';
-            edgeStyle = { stroke: '#333', strokeWidth: 2, strokeDasharray: '5,5' };
-        }
+        // Check for existing connection
+        const exists = edges.some(e =>
+            (e.source === source && e.target === target) ||
+            (e.source === target && e.target === source)
+        );
+        if (exists) return;
+
+        // Determine edge type and style based on nodes
+        const sourceNode = nodes.find(n => n.id === source);
+        const targetNode = nodes.find(n => n.id === target);
+
+        const { type, markerEnd, style } = getEdgeParams(sourceNode, targetNode);
 
         const newEdge = {
             ...params,
-            animated: false,
-            type: edgeType,
-            id: `edge-${params.source}-${params.target}-${Date.now()}`,
-            style: edgeStyle
+            id: `e${source}-${target}`,
+            type,
+            animated: globalAnimate,
+            markerEnd,
+            style,
+            data: { onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop }
         };
+
         setEdges((eds) => addEdge(newEdge, eds));
-    }, [setEdges]);
+    }, [nodes, edges, globalAnimate, setEdges, onWaypointDrag, getEdgeParams]);
 
-    const onNodeClick = useCallback((event, node) => {
-        setSelectedNode(node);
-        setSelectedEdge(null);
-        // Restore edges when clicking a node (remove highlight, but don't change opacity of others)
-        setEdges((eds) => eds.map((e) => {
-            const originalStyle = e.data?.originalStyle || e.style;
-            return {
-                ...e,
-                animated: globalAnimate,
-                style: { ...originalStyle, opacity: 1 }, // Ensure full opacity
-                data: { ...e.data, originalStyle: undefined }
-            };
-        }));
-    }, [globalAnimate, setEdges]);
+    const onReconnect = useCallback((oldEdge, newConnection) => {
+        takeSnapshot(nodes, edges);
+        const { source, target } = newConnection;
 
-    const onEdgeClick = useCallback((event, edge) => {
-        setSelectedEdge(edge);
-        setSelectedNode(null);
+        // Prevent self-loops
+        if (source === target) return;
 
-        // Update edges: highlight selected, DO NOT mute others
-        setEdges((eds) => eds.map((e) => {
-            if (e.id === edge.id) {
-                // Selected edge: animated with highlight
-                const originalStyle = e.data?.originalStyle || e.style;
-                const baseStrokeWidth = originalStyle?.strokeWidth || 2;
+        // Check for existing connection (excluding the one we are reconnecting)
+        const exists = edges.some(e =>
+            e.id !== oldEdge.id &&
+            ((e.source === source && e.target === target) ||
+                (e.source === target && e.target === source))
+        );
+        if (exists) return;
 
-                return {
-                    ...e,
-                    animated: true,
-                    data: { ...e.data, originalStyle },
-                    style: {
-                        ...originalStyle,
-                        stroke: '#f59e0b',
-                        strokeWidth: baseStrokeWidth + 1,
-                        opacity: 1
-                    }
-                };
-            } else {
-                // Other edges: Restore to original if they were highlighted, ensure opacity 1
-                const originalStyle = e.data?.originalStyle || e.style;
-                return {
-                    ...e,
-                    animated: globalAnimate, // Respect global animation
-                    data: { ...e.data, originalStyle: undefined }, // Clear stored original
-                    style: { ...originalStyle, opacity: 1 } // No muting!
-                };
-            }
-        }));
-    }, [setEdges, globalAnimate]);
+        const oldSourceNode = nodes.find(n => n.id === oldEdge.source);
+        const oldTargetNode = nodes.find(n => n.id === oldEdge.target);
+        const newSourceNode = nodes.find(n => n.id === source);
+        const newTargetNode = nodes.find(n => n.id === target);
 
-    const onEdgeDoubleClick = useCallback((event, edge) => {
-        // Prevent default behavior
-        event.preventDefault();
-        event.stopPropagation();
+        // Enforce strict node type consistency
+        // If source changed, new source must be same type as old source
+        if (oldEdge.source !== source && oldSourceNode?.type !== newSourceNode?.type) {
+            return;
+        }
+        // If target changed, new target must be same type as old target
+        if (oldEdge.target !== target && oldTargetNode?.type !== newTargetNode?.type) {
+            return;
+        }
 
-        // Calculate position for new waypoint
-        const position = screenToFlowPosition({
-            x: event.clientX,
-            y: event.clientY,
-        });
+        const { type, markerEnd, style } = getEdgeParams(newSourceNode, newTargetNode);
 
-        // Create Waypoint Node
-        const waypointId = `waypoint-${Date.now()}`;
-        const waypointNode = {
-            id: waypointId,
-            type: 'waypointNode',
-            position: { x: position.x - 7, y: position.y - 7 }, // Center the 14px node
-            data: { label: '' },
-            draggable: true,
-        };
-
-        // Create two new edges
-        const edge1 = {
-            ...edge,
-            id: `${edge.source}-${waypointId}`,
-            target: waypointId,
-            selected: false
-        };
-
-        const edge2 = {
-            ...edge,
-            id: `${waypointId}-${edge.target}`,
-            source: waypointId,
-            selected: false
-        };
-
-        // Update state: Add waypoint, remove old edge, add new edges
-        setNodes((nds) => nds.concat(waypointNode));
-        setEdges((eds) => eds.filter(e => e.id !== edge.id).concat([edge1, edge2]));
-
-        // Track manual move for the new waypoint so it gets saved
-        setManuallyMovedNodes((prev) => new Set(prev).add(waypointId));
-
-    }, [screenToFlowPosition, setNodes, setEdges]);
-
-    const onPaneClick = useCallback(() => {
-        setSelectedNode(null);
-        setSelectedEdge(null);
-
-        // Restore all edges to original state
-        setEdges((eds) => eds.map((e) => {
-            const originalStyle = e.data?.originalStyle || e.style;
-            return {
-                ...e,
-                animated: globalAnimate,
-                style: { ...originalStyle, opacity: 1 },
-                data: { ...e.data, originalStyle: undefined }
-            };
-        }));
-    }, [globalAnimate, setEdges]);
-
-    const handleDeleteNode = useCallback(() => {
-        if (selectedNode) {
-            if (selectedNode.type === 'waypointNode') {
-                // Handle Waypoint Deletion: Reconnect edges
-                const incomingEdge = edges.find(e => e.target === selectedNode.id);
-                const outgoingEdge = edges.find(e => e.source === selectedNode.id);
-
-                if (incomingEdge && outgoingEdge) {
-                    // Create merged edge preserving properties of incoming edge (or outgoing)
-                    const mergedEdge = {
-                        ...incomingEdge,
-                        id: `${incomingEdge.source}-${outgoingEdge.target}-${Date.now()}`,
-                        target: outgoingEdge.target,
-                        selected: true
+        setEdges((els) => {
+            const newEdges = reconnectEdge(oldEdge, newConnection, els);
+            return newEdges.map(e => {
+                if (e.id === oldEdge.id) {
+                    return {
+                        ...e,
+                        type,
+                        animated: globalAnimate,
+                        markerEnd,
+                        style,
+                        data: { ...e.data, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop }
                     };
-                    setEdges((eds) => eds.filter(e => e.target !== selectedNode.id && e.source !== selectedNode.id).concat(mergedEdge));
-                } else {
-                    // Just remove edges if not fully connected
-                    setEdges((eds) => eds.filter(e => e.target !== selectedNode.id && e.source !== selectedNode.id));
                 }
-                setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
-            } else {
-                // Normal node deletion
-                setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
-                setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id));
+                return e;
+            });
+        });
+    }, [nodes, edges, setEdges, getEdgeParams, onWaypointDrag, onWaypointClick, globalAnimate]);
+
+    const onNodeDragStart = useCallback(() => {
+        dragStartSnapshot.current = { nodes, edges };
+    }, [nodes, edges]);
+
+    const onNodeDragStop = useCallback(() => {
+        resetHelperLines();
+        if (dragStartSnapshot.current) {
+            const { nodes: oldNodes, edges: oldEdges } = dragStartSnapshot.current;
+            // Check if nodes changed (position only)
+            // We map to a simplified structure to ignore 'selected', 'dragging', etc.
+            const getNodeState = (nds) => nds.map(n => ({
+                id: n.id,
+                x: n.position.x,
+                y: n.position.y
+            }));
+
+            const nodesChanged = JSON.stringify(getNodeState(nodes)) !== JSON.stringify(getNodeState(oldNodes));
+            if (nodesChanged) {
+                takeSnapshot(oldNodes, oldEdges);
             }
-            setSelectedNode(null);
+            dragStartSnapshot.current = null;
         }
-    }, [selectedNode, setNodes, setEdges, edges]);
+    }, [nodes, edges, takeSnapshot, resetHelperLines]);
 
-    const handleDeleteEdge = useCallback(() => {
-        if (selectedEdge) {
-            setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
-            setSelectedEdge(null);
-        }
-    }, [selectedEdge, setEdges]);
+    const onNodeDrag = useCallback((event, node) => {
+        onNodeDragHelper(event, node, nodes, setNodes);
+        setManuallyMovedNodes((prev) => new Set(prev).add(node.id));
+    }, [nodes, setNodes, onNodeDragHelper]);
 
-    const toggleGlobalAnimation = useCallback(() => {
-        const newState = !globalAnimate;
-        setGlobalAnimate(newState);
-        setEdges((eds) => eds.map((e) => ({
-            ...e,
-            animated: newState
-        })));
-    }, [globalAnimate, setEdges]);
-
-    // Drag and Drop Handlers
     const onDragStart = (event, nodeType) => {
         event.dataTransfer.setData('application/reactflow', nodeType);
         event.dataTransfer.effectAllowed = 'move';
@@ -295,8 +294,6 @@ const FlowModelerContent = () => {
             event.preventDefault();
 
             const type = event.dataTransfer.getData('application/reactflow');
-
-            // check if the dropped element is valid
             if (typeof type === 'undefined' || !type) {
                 return;
             }
@@ -306,98 +303,258 @@ const FlowModelerContent = () => {
                 y: event.clientY,
             });
 
-            // Simple overlap prevention: check distance to other nodes
-            // If too close, shift slightly (simple heuristic)
-            let adjustedPosition = { ...position };
-            const minDistance = 50;
-            let overlapFound = true;
-            let attempts = 0;
-
-            while (overlapFound && attempts < 10) {
-                overlapFound = false;
-                for (const node of nodes) {
-                    const dx = node.position.x - adjustedPosition.x;
-                    const dy = node.position.y - adjustedPosition.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < minDistance) {
-                        overlapFound = true;
-                        adjustedPosition.x += 20;
-                        adjustedPosition.y += 20;
-                        break;
-                    }
-                }
-                attempts++;
-            }
-
-            let newNodeData = { label: 'New Node' };
-            if (type === 'questionNode') {
-                newNodeData = { label: 'New Question', questionId: 'new', tooltip: null };
-            } else if (type === 'optionNode') {
-                newNodeData = { label: 'New Option' };
-            } else if (type === 'documentNode') {
-                newNodeData = { label: 'New Document', docType: 'optional' };
-            }
-
             const newNode = {
                 id: `${type}-${Date.now()}`,
                 type,
-                position: adjustedPosition,
-                data: newNodeData,
+                position,
+                data: { label: `New ${type}` },
             };
 
+            takeSnapshot(nodes, edges);
             setNodes((nds) => nds.concat(newNode));
+            setManuallyMovedNodes((prev) => new Set(prev).add(newNode.id));
         },
-        [screenToFlowPosition, setNodes, nodes],
+        [screenToFlowPosition, setNodes, nodes, edges, takeSnapshot]
     );
 
-    return (
-        <div style={{ width: '100vw', height: '100vh', userSelect: 'none', WebkitUserSelect: 'none' }} ref={reactFlowWrapper}>
-            <div style={{
-                position: 'absolute',
-                top: '10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 5,
-                background: 'white',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                display: 'flex',
-                gap: '12px'
-            }}>
-                <button onClick={handleSaveXML} style={{ padding: '6px 12px', cursor: 'pointer', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px' }}>
-                    Save XML
-                </button>
-                <button onClick={handleSavePositions} style={{ padding: '6px 12px', cursor: 'pointer', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px' }}>
-                    Save Positions
-                </button>
-                <button onClick={handleResetLayout} style={{ padding: '6px 12px', cursor: 'pointer', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px' }}>
-                    Reset Layout
-                </button>
-            </div>
+    const onNodeClick = useCallback((event, node) => {
+        setSelectedNode(node);
+        setSelectedEdge(null);
+        setSelectedWaypoint(null);
+        // Clear waypoint selection from edges
+        setEdges((eds) => eds.map(e => {
+            let newData = e.data;
+            if (e.data?.selectedWaypointIndex !== undefined) {
+                const { selectedWaypointIndex, ...restData } = e.data;
+                newData = restData;
+            }
+            return { ...e, data: newData, selected: false, animated: globalAnimate };
+        }));
+    }, [setEdges, globalAnimate]);
 
+    const getDistanceToSegment = (p, v, w) => {
+        const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
+        if (l2 === 0) return Math.sqrt(Math.pow(p.x - v.x, 2) + Math.pow(p.y - v.y, 2));
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        const projection = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
+        return Math.sqrt(Math.pow(p.x - projection.x, 2) + Math.pow(p.y - projection.y, 2));
+    };
+
+    const onEdgeClick = useCallback((event, edge) => {
+        event.stopPropagation();
+
+        if (selectedEdge && selectedEdge.id === edge.id) {
+            // Already selected, add/move waypoint
+            const position = screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            // Get existing waypoints
+            let waypoints = [];
+            if (edge.data && edge.data.waypoints) {
+                waypoints = [...edge.data.waypoints];
+            } else if (edge.data && edge.data.waypoint) {
+                waypoints = [edge.data.waypoint];
+            }
+
+            // Find insertion index
+            const sourceNode = nodes.find(n => n.id === edge.source);
+            const targetNode = nodes.find(n => n.id === edge.target);
+
+            if (sourceNode && targetNode) {
+                // Construct full path of points: Source -> W1 -> W2 -> ... -> Target
+                // We need to handle handles if possible, but for now center/position is approximation
+                // Actually, React Flow edges connect to handles. 
+                // But for distance checking, node position is a decent enough proxy for large nodes.
+                // Better: use the edge's sourceX/Y if available in the event? No, event is click.
+                // The edge object passed to onEdgeClick doesn't have current sourceX/Y computed.
+                // We can use node positions.
+
+                const points = [
+                    sourceNode.position,
+                    ...waypoints,
+                    targetNode.position
+                ];
+
+                // Find closest segment
+                let minDistance = Infinity;
+                let insertIndex = 0;
+
+                for (let i = 0; i < points.length - 1; i++) {
+                    const dist = getDistanceToSegment(position, points[i], points[i + 1]);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        insertIndex = i;
+                    }
+                }
+
+                // Insert at found index
+                takeSnapshot(nodes, edges);
+                waypoints.splice(insertIndex, 0, { x: position.x, y: position.y });
+
+                const updatedEdge = {
+                    ...edge,
+                    type: 'curved',
+                    data: {
+                        ...edge.data,
+                        waypoints,
+                        onWaypointDrag,
+                        onWaypointClick,
+                        onWaypointDragStart,
+                        onWaypointDragStop
+                    },
+                    selected: true
+                };
+                setEdges((eds) => eds.map(e => e.id === edge.id ? updatedEdge : e));
+            }
+        } else {
+            setSelectedEdge(edge);
+            setSelectedNode(null);
+            setEdges((eds) => eds.map((e) => ({
+                ...e,
+                selected: e.id === edge.id,
+                animated: e.id === edge.id ? true : globalAnimate
+            })));
+        }
+    }, [selectedEdge, screenToFlowPosition, setEdges, onWaypointDrag, onWaypointClick, nodes, edges, globalAnimate, takeSnapshot]);
+
+    // Keyboard event handler for deletion
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable) return;
+
+            if (event.key === 'Delete' || event.key === 'Backspace') {
+                if (selectedWaypoint) {
+                    // Delete waypoint
+                    event.preventDefault();
+                    takeSnapshot(nodes, edges);
+                    setEdges((eds) => eds.map(e => {
+                        if (e.id === selectedWaypoint.edgeId) {
+                            const waypoints = [...(e.data.waypoints || [])];
+                            waypoints.splice(selectedWaypoint.index, 1);
+
+                            // If no waypoints left, revert to default edge type
+                            if (waypoints.length === 0) {
+                                const { waypoints: _, selectedWaypointIndex, onWaypointDrag, onWaypointClick, ...restData } = e.data;
+                                return {
+                                    ...e,
+                                    type: e.type.replace('curved', 'default'),
+                                    data: { onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, ...restData }
+                                };
+                            }
+
+                            const { selectedWaypointIndex, ...restData } = e.data;
+                            return {
+                                ...e,
+                                data: {
+                                    ...restData,
+                                    waypoints
+                                }
+                            };
+                        }
+                        return e;
+                    }));
+                    setSelectedWaypoint(null);
+                } else if (selectedNode) {
+                    // Delete node (existing behavior)
+                    handleDeleteNode();
+                } else if (selectedEdge) {
+                    // Delete edge (existing behavior)
+                    handleDeleteEdge();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, nodes, edges, takeSnapshot]);
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable) return;
+
+            if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+                event.preventDefault();
+                if (event.shiftKey) {
+                    if (canRedo) redo(nodes, edges, setNodes, setEdges);
+                } else {
+                    if (canUndo) undo(nodes, edges, setNodes, setEdges);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [nodes, edges, undo, redo, canUndo, canRedo, setNodes, setEdges]);
+
+    const onPaneClick = useCallback(() => {
+        setSelectedNode(null);
+        setSelectedEdge(null);
+        setSelectedWaypoint(null);
+        // Clear waypoint selection from edges
+        setEdges((eds) => eds.map(e => {
+            let newData = e.data;
+            if (e.data?.selectedWaypointIndex !== undefined) {
+                const { selectedWaypointIndex, ...restData } = e.data;
+                newData = restData;
+            }
+            return { ...e, data: newData, selected: false, animated: globalAnimate };
+        }));
+    }, [setEdges, globalAnimate]);
+
+    const handleDeleteNode = useCallback(() => {
+        if (!selectedNode) return;
+
+        // Delete connected edges
+        const connectedEdges = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id);
+
+        takeSnapshot(nodes, edges);
+        setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
+        setSelectedNode(null);
+    }, [selectedNode, setNodes, setEdges, nodes, edges, takeSnapshot]);
+
+    const handleDeleteEdge = useCallback(() => {
+        if (!selectedEdge) return;
+        takeSnapshot(nodes, edges);
+        setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
+        setSelectedEdge(null);
+    }, [selectedEdge, setEdges, nodes, edges, takeSnapshot]);
+
+    const toggleGlobalAnimation = () => {
+        setGlobalAnimate(prev => !prev);
+        setEdges(eds => eds.map(e => ({ ...e, animated: e.selected ? true : !globalAnimate })));
+    };
+
+    return (
+        <div style={{ width: '100%', height: '100vh' }}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onReconnect={onReconnect}
+                onNodeDragStart={onNodeDragStart}
                 onNodeDragStop={onNodeDragStop}
+                onNodeDrag={onNodeDrag}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 fitView
-                deleteKeyCode="Delete"
+                deleteKeyCode={null}
                 onNodeClick={onNodeClick}
                 onEdgeClick={onEdgeClick}
-                onEdgeDoubleClick={onEdgeDoubleClick}
                 onPaneClick={onPaneClick}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
                 selectionOnDrag={true}
                 selectionMode="partial"
-                panOnDrag={[1]} // Middle mouse button only (0=left, 1=middle, 2=right)
+                panOnDrag={[1]}
+                panOnScroll={true}
             >
                 <Background />
+                <HelperLines />
                 <Controls />
                 <MiniMap pannable zoomable />
                 <Panel position="top-right" style={{
@@ -465,6 +622,24 @@ const FlowModelerContent = () => {
                     >
                         ➕ Document
                     </div>
+                    <div
+                        onDragStart={(event) => onDragStart(event, 'endNode')}
+                        draggable
+                        style={{
+                            padding: '8px',
+                            marginBottom: '10px',
+                            background: '#fee2e2',
+                            color: '#991b1b',
+                            border: '1px solid #dc2626',
+                            borderRadius: '4px',
+                            cursor: 'grab',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            textAlign: 'center'
+                        }}
+                    >
+                        🛑 End Event
+                    </div>
 
                     <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px', marginBottom: '10px' }}>
                         <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
@@ -500,6 +675,43 @@ const FlowModelerContent = () => {
                     </div>
 
                     <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                            <button
+                                onClick={() => undo(nodes, edges, setNodes, setEdges)}
+                                disabled={!canUndo}
+                                style={{
+                                    flex: 1,
+                                    padding: '6px',
+                                    background: canUndo ? '#3b82f6' : '#9ca3af',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: canUndo ? 'pointer' : 'not-allowed',
+                                    fontSize: '11px',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                ↩️ Undo
+                            </button>
+                            <button
+                                onClick={() => redo(nodes, edges, setNodes, setEdges)}
+                                disabled={!canRedo}
+                                style={{
+                                    flex: 1,
+                                    padding: '6px',
+                                    background: canRedo ? '#3b82f6' : '#9ca3af',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: canRedo ? 'pointer' : 'not-allowed',
+                                    fontSize: '11px',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                ↪️ Redo
+                            </button>
+                        </div>
+
                         <button
                             onClick={toggleGlobalAnimation}
                             style={{
@@ -558,8 +770,8 @@ const FlowModelerContent = () => {
                         )}
                     </div>
                 </Panel>
-            </ReactFlow >
-        </div >
+            </ReactFlow>
+        </div>
     );
 };
 
