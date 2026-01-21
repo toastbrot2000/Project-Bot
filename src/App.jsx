@@ -5,10 +5,13 @@ import { AnswerOptions } from './components/Chat/AnswerOptions';
 import { Tooltip } from './components/UI/Tooltip';
 import { ResultsPage } from './components/Results/ResultsPage';
 
+import { ConfirmationModal } from './components/UI/ConfirmationModal';
+
 function App() {
   const { history, loading, handleAnswer, resetChat, goBack, rewindTo, isFinished, userAnswers } = useChatFlow();
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [tooltipTrigger, setTooltipTrigger] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, targetId: null });
   const chatBoxRef = useRef(null);
 
   // Auto-scroll to bottom
@@ -21,6 +24,28 @@ function App() {
   const onShowTooltip = (content, trigger) => {
     setActiveTooltip(content);
     setTooltipTrigger(trigger);
+  };
+
+  const handleEdit = (message) => {
+    // Find the index of this answer
+    if (!message.questionId) return;
+
+    const lastAnswer = userAnswers[userAnswers.length - 1];
+
+    // If it's the last answer, just go back (undo)
+    if (lastAnswer && lastAnswer.questionId === message.questionId) {
+      goBack();
+    } else {
+      // It's a previous answer, ask for confirmation
+      setConfirmModal({ isOpen: true, targetId: message.questionId });
+    }
+  };
+
+  const handleConfirmRewind = () => {
+    if (confirmModal.targetId) {
+      rewindTo(confirmModal.targetId);
+    }
+    setConfirmModal({ isOpen: false, targetId: null });
   };
 
   if (loading) return <div className="loading">Loading...</div>;
@@ -39,15 +64,15 @@ function App() {
         <div id="chat-box" ref={chatBoxRef}>
           {history.map((msg, idx) => (
             <div key={idx}>
-              <ChatMessage message={msg} onShowTooltip={onShowTooltip} />
-              {/* If this is the active message (last bot message), show options */}
+              <ChatMessage
+                message={msg}
+                onShowTooltip={onShowTooltip}
+                onEdit={msg.type === 'user' ? handleEdit : undefined}
+              />
             </div>
           ))}
 
-          {/* Show options for the last question if it's the latest and not answered yet?
-                 Actually useChatFlow history includes user answers. 
-                 So if last item is 'bot', we show options.
-              */}
+          {/* If this is the active message (last bot message), show options */}
           {history.length > 0 && history[history.length - 1].type === 'bot' && !isFinished && (
             <AnswerOptions
               options={history[history.length - 1].options}
@@ -64,6 +89,13 @@ function App() {
           triggerElement={tooltipTrigger}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        message="Changing this answer will clear all subsequent progress. Are you sure?"
+        onConfirm={handleConfirmRewind}
+        onCancel={() => setConfirmModal({ isOpen: false, targetId: null })}
+      />
     </div>
   );
 }

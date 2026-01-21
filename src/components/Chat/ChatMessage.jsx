@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export function ChatMessage({ message, onShowTooltip }) {
+export function ChatMessage({ message, onShowTooltip, onEdit }) {
     const isBot = message.type === 'bot';
     const text = typeof message.text === 'object'
         ? (message.text.text || JSON.stringify(message.text)) // Attempt to get .text if it's the wrapped object issue
@@ -31,6 +31,11 @@ export function ChatMessage({ message, onShowTooltip }) {
             <div className="answer-bubble selected fade-in">
                 {text}
             </div>
+            {onEdit && (
+                <button className="edit-button" onClick={() => onEdit(message)} aria-label="Edit answer">
+                    <i className="fa-solid fa-pen"></i>
+                </button>
+            )}
         </div>
     );
 }
