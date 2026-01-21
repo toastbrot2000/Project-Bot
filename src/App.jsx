@@ -3,10 +3,10 @@ import { useChatFlow } from './hooks/useChatFlow';
 import { ChatMessage } from './components/Chat/ChatMessage';
 import { AnswerOptions } from './components/Chat/AnswerOptions';
 import { Tooltip } from './components/UI/Tooltip';
-// import { ResultsPage } from './components/Results/ResultsPage'; // Todo
+import { ResultsPage } from './components/Results/ResultsPage';
 
 function App() {
-  const { history, loading, handleAnswer, resetChat, rewindTo, isFinished } = useChatFlow();
+  const { history, loading, handleAnswer, resetChat, goBack, rewindTo, isFinished, userAnswers } = useChatFlow();
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [tooltipTrigger, setTooltipTrigger] = useState(null);
   const chatBoxRef = useRef(null);
@@ -24,6 +24,14 @@ function App() {
   };
 
   if (loading) return <div className="loading">Loading...</div>;
+
+  if (isFinished) {
+    return (
+      <div id="main-content">
+        <ResultsPage onReset={resetChat} onBack={goBack} answers={userAnswers} />
+      </div>
+    );
+  }
 
   return (
     <div id="main-content">

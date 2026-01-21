@@ -8,6 +8,11 @@ export class QuestionService {
             attributeNamePrefix: '',
             textNodeName: 'text',
         });
+        this.dependencies = [];
+    }
+
+    getDependencies() {
+        return this.dependencies;
     }
 
     async fetchQuestions() {
@@ -58,6 +63,37 @@ export class QuestionService {
 
                 this.questions.set(q.id, q);
             });
+
+            // Parse Dependencies
+            if (jsonObj.questions.dependencies && jsonObj.questions.dependencies.document) {
+                const deps = Array.isArray(jsonObj.questions.dependencies.document)
+                    ? jsonObj.questions.dependencies.document
+                    : [jsonObj.questions.dependencies.document];
+
+                this.dependencies = deps.map(doc => {
+                    // Normalize text
+                    const getText = (val) => {
+                        if (!val) return '';
+                        if (Array.isArray(val)) val = val[0];
+                        if (typeof val === 'object') return val.text || val['#text'] || '';
+                        return val;
+                    };
+                    doc.text = getText(doc.text);
+
+                    // Normalize conditions
+                    if (doc.conditions && doc.conditions.condition) {
+                        if (!Array.isArray(doc.conditions.condition)) {
+                            doc.conditions.condition = [doc.conditions.condition];
+                        }
+                    } else {
+                        // Ensure it is an array even if empty/missing
+                        if (!doc.conditions) doc.conditions = { condition: [] };
+                    }
+                    return doc;
+                });
+            } else {
+                this.dependencies = [];
+            }
 
             return this.questions;
         } catch (error) {

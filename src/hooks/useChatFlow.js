@@ -136,48 +136,21 @@ export function useChatFlow() {
         setUserAnswers([]);
         setIsFinished(false);
         localStorage.removeItem('userAnswers');
-        // Reset init ref so we can start over? 
-        // Or just manually call addQuestionToHistory("1")
-        // No need to reset ref if we manually trigger start.
         addQuestionToHistory("1");
     };
 
     const goBack = () => {
-        // Remove last answer and last question
-        if (userAnswers.length === 0) return;
+        // Remove last answer
+        if (userAnswers.length === 0) {
+            resetChat();
+            return;
+        }
 
-        const lastAnswer = userAnswers[userAnswers.length - 1];
         const newAnswers = userAnswers.slice(0, -1);
         setUserAnswers(newAnswers);
         localStorage.setItem('userAnswers', JSON.stringify(newAnswers));
 
-        // Rebuild history? 
-        // Easier to just slice history.
-        // History pattern: Q1, A1, Q2, A2...
-        // If we are at Q3 (waiting), history is Q1, A1, Q2, A2, Q3.
-        // We want to go back to Q2 to re-answer.
-        // So remove Q3 and A2.
-        // Leaving Q1, A1, Q2.
-
-        setHistory(prev => {
-            // Find the index of the answer we are removing
-            // It should be the last 'user' message
-            const lastUserIndex = prev.findLastIndex(m => m.type === 'user');
-            if (lastUserIndex === -1) return prev;
-
-            // Remove everything after the answer before this one?
-            // Actually, we want to remove the last Answer and the Question that followed it (if any).
-            // But wait, if we are currently "waiting for answer", the last item is a Question.
-            // If we answered, the last item is an Answer (and maybe next Question hasn't loaded yet?).
-            // Usually: user sees Q3. deciding. Wants to change Q2.
-            // So user clicks "Edit" on A2 bubble.
-
-            return prev; // todo: implement robust history rewriting or just reset to that point
-        });
-
-        // For now, simpler "Edit" logic like in original:
-        // "Editing this answer will remove all following answers and restart from this point."
-        // So we need a function `rewindTo(questionId)`
+        rebuildHistory(newAnswers);
     };
 
     const rewindTo = (questionId) => {
@@ -190,31 +163,6 @@ export function useChatFlow() {
         const newAnswers = userAnswers.slice(0, index);
         setUserAnswers(newAnswers);
         localStorage.setItem('userAnswers', JSON.stringify(newAnswers));
-
-        // Re-calculate history
-        // It's safer to rebuild history from scratch based on answers
-        // But we can just clear history and replay?
-        // Or just hard reset and fast-forward.
-
-        const newHistory = [];
-        // This is complex to do synchronously without `await`.
-        // Better to trigger a re-eval effect.
-        // For MVP:
-        setHistory([]); // Flash clear
-        // We need to replay. This might be tricky in a hook without async loop.
-        // Alternative: Just set state "replaying" and use effect.
-
-        // Let's modify logic: The component will handle the "Edit" click by calling this,
-        // and we just reset to that Question ID.
-
-        // Actually, if we clear history, we need to add Q1, then answer it, then Q2...
-        // Ideally, we just persist `userAnswers` and derive `history` from it?
-        // But `history` has async components (tooltips).
-
-        // Simple approach:
-        // 1. Update userAnswers.
-        // 2. Set currentQuestionId to the one we want to answer.
-        // 3. Rebuild history from remaining answers + currentQuestion.
 
         rebuildHistory(newAnswers, questionId);
     };
@@ -254,15 +202,22 @@ export function useChatFlow() {
         }
 
         // Finally add the target question (which should be nextId)
-        if (nextId === targetQuestionId) {
+        // If targetQuestionId is provided, enforce it. If not, just append the natural next step.
+        const shouldAddNext = !targetQuestionId || nextId === targetQuestionId;
+
+        if (shouldAddNext && nextId) {
             const q = questionService.getQuestionById(nextId);
             if (q) {
                 let tooltipContent = null;
                 if (q.tooltip) {
-                    const tooltipId = typeof q.tooltip === 'string' ? q.tooltip.trim() : null;
-                    if (tooltipId) {
-                        const raw = strapiService.getTooltip(tooltipId); // assume loaded
-                        if (raw) tooltipContent = strapiService.richTextToHtml(raw);
+                    const tooltipKey = typeof q.tooltip === 'string' ? q.tooltip.trim() : null;
+                    if (tooltipKey) {
+                        const rawContent = strapiService.getTooltip(tooltipKey);
+                        if (rawContent) {
+                            tooltipContent = strapiService.richTextToHtml(rawContent);
+                        } else if (tooltipKey.includes(' ') || tooltipKey.length > 20) {
+                            tooltipContent = tooltipKey;
+                        }
                     }
                 }
 
@@ -286,6 +241,7 @@ export function useChatFlow() {
         loading,
         handleAnswer,
         resetChat,
+        goBack,
         rewindTo,
         isFinished,
         userAnswers
