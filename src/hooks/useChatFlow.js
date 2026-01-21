@@ -57,11 +57,16 @@ export function useChatFlow() {
         // Check for tooltip ID override
         let tooltipContent = null;
         if (q.tooltip) {
-            const tooltipId = typeof q.tooltip === 'string' ? q.tooltip.trim() : null;
-            if (tooltipId) {
-                const rawContent = strapiService.getTooltip(tooltipId);
+            const tooltipKey = typeof q.tooltip === 'string' ? q.tooltip.trim() : null;
+            if (tooltipKey) {
+                // 1. Try Strapi
+                const rawContent = strapiService.getTooltip(tooltipKey);
                 if (rawContent) {
                     tooltipContent = strapiService.richTextToHtml(rawContent);
+                }
+                // 2. Fallback: If it looks like content (has spaces), use it directly
+                else if (tooltipKey.includes(' ') || tooltipKey.length > 20) {
+                    tooltipContent = tooltipKey;
                 }
             }
         }
