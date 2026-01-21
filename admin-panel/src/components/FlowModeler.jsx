@@ -12,11 +12,10 @@ import ReactFlow, {
     useReactFlow,
     BezierEdge,
     MarkerType,
-    getRectOfNodes,
+    getNodesBounds,
     getTransformForBounds
 } from 'reactflow';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { toSvg } from 'html-to-image';
 import 'reactflow/dist/style.css';
 import { QuestionNode, OptionNode, DocumentNode, EndNode } from './CustomNodes';
 import CustomCurvedEdge from './CustomCurvedEdge';
@@ -732,35 +731,50 @@ const FlowModelerContent = () => {
         }
     }, [loadFlowFromText, clearHistory]);
 
-    const handleExportPDF = useCallback(() => {
-        // We need to fit the view to include all nodes before capturing
-        const nodesBounds = getRectOfNodes(nodes);
-        const transform = getTransformForBounds(nodesBounds, nodesBounds.width, nodesBounds.height, 0.5, 2);
+    const handleExportVectorPDF = useCallback(() => {
+        const nodesBounds = getNodesBounds(nodes);
+        const padding = 50;
+        const width = nodesBounds.width + padding * 2;
+        const height = nodesBounds.height + padding * 2;
 
-        // Temporarily update the view to fit everything? 
-        // Actually, html2canvas captures what's in the DOM. 
-        // If we want to capture the whole flow, we might need to ensure it's visible or capture the specific container.
-        // The React Flow viewport might be larger than the screen.
+        const transform = `translate(${(-nodesBounds.x + padding)}px, ${(-nodesBounds.y + padding)}px)`;
 
-        // A common strategy is to select the .react-flow__viewport element
         const viewport = document.querySelector('.react-flow__viewport');
 
         if (!viewport) return;
 
-        html2canvas(viewport, {
-            scale: 2 // Improve resolution
-        }).then((canvas) => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-            });
-
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save('flow-export.pdf');
+        toSvg(viewport, {
+            backgroundColor: '#ffffff',
+            width: width,
+            height: height,
+            style: {
+                width: width,
+                height: height,
+                transform: transform,
+            },
+        }).then((dataUrl) => {
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Flow Export</title>
+                            <style>
+                                @page { size: auto; margin: 0mm; }
+                                body { margin: 0; display: flex; justify-content: center; align-items: center; }
+                                img { max-width: 100%; height: auto; }
+                            </style>
+                        </head>
+                        <body>
+                            <img src="${dataUrl}" onload="setTimeout(() => window.print(), 100);" />
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            }
+        }).catch((err) => {
+            console.error('Error exporting Vector PDF:', err);
+            alert('Failed to export Vector PDF.');
         });
     }, [nodes]);
 
@@ -990,7 +1004,7 @@ const FlowModelerContent = () => {
                             💾 Save As...
                         </button>
                         <button
-                            onClick={handleExportPDF}
+                            onClick={handleExportVectorPDF}
                             style={{
                                 width: '100%',
                                 padding: '8px',
@@ -1102,7 +1116,7 @@ const FlowModelerContent = () => {
                     </div>
                 </Panel>
             </ReactFlow>
-        </div>
+        </div >
     );
 };
 

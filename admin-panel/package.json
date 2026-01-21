@@ -12,8 +12,7 @@
   "dependencies": {
     "dagre": "^0.8.5",
     "fast-xml-parser": "^5.3.2",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.4",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
