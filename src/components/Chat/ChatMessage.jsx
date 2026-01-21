@@ -9,6 +9,7 @@ export function ChatMessage({ message, onShowTooltip, onEdit }) {
     if (isBot) {
         return (
             <div className={`chat-message fade-in ${message.tooltip ? 'has-tooltip' : ''}`}>
+                <span>{text}</span>
                 {message.tooltip && (
                     <span
                         className="tooltip-icon"
@@ -20,7 +21,6 @@ export function ChatMessage({ message, onShowTooltip, onEdit }) {
                         <i className="fas fa-question-circle"></i>
                     </span>
                 )}
-                <span>{text}</span>
             </div>
         );
     }
