@@ -24,7 +24,7 @@
       
           "react": {
             name: "react",
-            version: "19.2.3",
+            version: "18.3.1",
             scope: ["default"],
             loaded: false,
             from: "adminApp",
@@ -47,14 +47,14 @@
             },
             shareConfig: {
               singleton: true,
-              requiredVersion: "^19.2.3",
+              requiredVersion: "^18.3.1",
               
             }
           }
         ,
           "react-dom": {
             name: "react-dom",
-            version: "19.2.3",
+            version: "18.3.1",
             scope: ["default"],
             loaded: false,
             from: "adminApp",
@@ -77,7 +77,7 @@
             },
             shareConfig: {
               singleton: true,
-              requiredVersion: "^19.2.3",
+              requiredVersion: "^18.3.1",
               
             }
           }

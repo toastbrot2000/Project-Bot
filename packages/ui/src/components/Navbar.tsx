@@ -1,10 +1,11 @@
 import * as React from "react"
 import { cn } from "../lib/utils"
+import { ExternalLink } from "lucide-react"
 
 
 export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
     logo?: React.ReactNode;
-    links?: { label: string; href: string; active?: boolean }[];
+    links?: { label: string; href: string; active?: boolean; target?: string }[];
     userMenu?: React.ReactNode;
 }
 
@@ -26,12 +27,16 @@ export function Navbar({ className, logo, links, userMenu, ...props }: NavbarPro
                                 <a
                                     key={link.href}
                                     href={link.href}
+                                    target={link.target}
                                     className={cn(
-                                        "transition-colors hover:text-primary/80",
+                                        "transition-colors hover:text-primary/80 flex items-center",
                                         link.active ? "text-primary font-semibold" : "text-primary/60"
                                     )}
                                 >
                                     {link.label}
+                                    {link.target === '_blank' && (
+                                        <ExternalLink className="ml-1 h-3 w-3" />
+                                    )}
                                 </a>
                             ))}
                         </nav>

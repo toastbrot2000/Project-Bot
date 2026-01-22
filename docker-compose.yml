@@ -1,0 +1,25 @@
+version: '3'
+services:
+  backend:
+    container_name: project-bot-backend
+    build: ./apps/backend
+    ports:
+      - '1337:1337'
+    environment:
+      - NODE_ENV=development
+      - DATABASE_CLIENT=sqlite
+      - DATABASE_FILENAME=.tmp/data.db
+      - JWT_SECRET=M2wmUXLm7k5VJ8qu6duUSg==
+      - APP_KEYS=0xOdXF8L/50YRt6ZFGA8tA==,6c7XMa6ACZtSjaqfcyouyA==,o2s33j1nsCs6kBzzpU7ScA==,DxvWARuIMtQnKMluW3c0jg==
+      - API_TOKEN_SALT=GdqAtckKIiiCPZ5JF9W/MA==
+      - ADMIN_JWT_SECRET=PUOKOOndj6bEsu4wMy718g==
+      - TRANSFER_TOKEN_SALT=hRoRVcmoQcxI3FrzTxyRQg==
+    volumes:
+      - ./apps/backend/config:/opt/app/config
+      - ./apps/backend/src:/opt/app/src
+      - ./apps/backend/public:/opt/app/public
+      - ./apps/backend/database:/opt/app/database
+      - strapi_data:/opt/app/.tmp
+
+volumes:
+  strapi_data:
