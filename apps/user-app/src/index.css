@@ -21,7 +21,7 @@ body {
   max-width: 1600px;
   margin: 0 auto;
   /* FIX: Center the wrapper on wide screens */
-  gap: 24px;
+  gap: 4px;
   /* Reserve space for footer (approx 60-80px) */
   height: calc(100vh - 80px);
   min-height: 0;
@@ -41,8 +41,9 @@ body {
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  margin: 0 auto;
-  margin-top: 20px;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
 }
 
 /* === Chatbox mit Bubbles === */
@@ -258,6 +259,7 @@ body {
   box-sizing: border-box;
   animation: slideInFromRight 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
   overflow: hidden;
+  margin-left: 20px;
   /* Prevent content from spilling during animation */
 }
 
