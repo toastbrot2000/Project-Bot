@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tooltips",
+  "info": {
+    "singularName": "tooltip",
+    "pluralName": "tooltips",
+    "displayName": "Tooltip"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "question_id": {
+      "type": "string"
+    },
+    "content": {
+      "type": "blocks"
+    }
+  }
+}

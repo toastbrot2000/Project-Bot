@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "visa_documents",
+  "info": {
+    "singularName": "visa-document",
+    "pluralName": "visa-documents",
+    "displayName": "Visa Document"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    }
+  }
+}
