@@ -41,7 +41,7 @@
               }
             },
             shareConfig: {
-              singleton: false,
+              singleton: true,
               requiredVersion: "^19.2.3",
               
             }
@@ -71,7 +71,7 @@
               }
             },
             shareConfig: {
-              singleton: false,
+              singleton: true,
               requiredVersion: "^19.2.3",
               
             }

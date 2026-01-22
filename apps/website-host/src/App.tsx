@@ -1,46 +1,64 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import Landing from './pages/Landing';
+import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom';
+import { BaseLayout, Navbar, Footer, ToastProvider, FunLoader, Logo, Button } from '@project-bot/ui';
 import './index.css';
+import Landing from './pages/Landing';
 
 const UserApp = React.lazy(() => import('userApp/Main'));
 const AdminApp = React.lazy(() => import('adminApp/Dashboard'));
 
-const NavBar = () => {
+const AppNavbar = () => {
   const location = useLocation();
-  if (location.pathname === '/') return null; // Hide nav on landing page
+  if (location.pathname === '/') {
+    // Different nav for landing if needed, but for now consistent
+  }
+
+  const links = [
+    { label: 'Home', href: '/', active: location.pathname === '/' },
+    { label: 'User App', href: '/app', active: location.pathname.startsWith('/app') },
+    { label: 'Admin', href: '/admin', active: location.pathname.startsWith('/admin') },
+  ];
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold text-gray-800">Project Bot</Link>
-        <nav className="flex gap-6">
-          <Link to="/" className="text-gray-600 hover:text-blue-600 font-medium">Home</Link>
-          <Link to="/app" className="text-gray-600 hover:text-blue-600 font-medium">User App</Link>
-          <Link to="/admin" className="text-gray-600 hover:text-blue-600 font-medium">Admin</Link>
-        </nav>
-      </div>
-    </header>
+    <Navbar
+      logo={
+        <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+          <Logo className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+          <span className="text-xl font-bold tracking-tight text-foreground transition-colors hover:text-primary">
+            Project Bot
+          </span>
+        </Link>
+      }
+      links={links}
+      userMenu={
+        <div className="flex items-center gap-4">
+          <Link to="/app">
+            <Button>Launch App</Button>
+          </Link>
+        </div>
+      }
+    />
   );
 };
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen font-sans text-gray-900 bg-gray-50">
-        <NavBar />
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <ToastProvider>
+        <BaseLayout>
+          <AppNavbar />
+          <div className="flex-1">
+            <Suspense fallback={<FunLoader />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/app/*" element={<UserApp />} />
+                <Route path="/admin/*" element={<AdminApp />} />
+              </Routes>
+            </Suspense>
           </div>
-        }>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/app/*" element={<UserApp />} />
-            <Route path="/admin/*" element={<AdminApp />} />
-          </Routes>
-        </Suspense>
-      </div>
+          <Footer />
+        </BaseLayout>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

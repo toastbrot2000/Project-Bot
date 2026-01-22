@@ -11,7 +11,11 @@ export default defineConfig({
       exposes: {
         './Main': './src/App.jsx',
       },
-      shared: ['react', 'react-dom', 'reactflow'],
+      shared: {
+        react: { singleton: true },
+        'react-dom': { singleton: true },
+        reactflow: { singleton: true },
+      },
       dts: false,
     }),
   ],

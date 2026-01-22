@@ -6,6 +6,7 @@ import { AnswerOptions } from './components/Chat/AnswerOptions';
 import { Tooltip } from './components/UI/Tooltip';
 import { ResultsPage } from './components/Results/ResultsPage';
 
+import { FunLoader } from '@project-bot/ui';
 import { ConfirmationModal } from './components/UI/ConfirmationModal';
 
 function App() {
@@ -49,7 +50,7 @@ function App() {
     setConfirmModal({ isOpen: false, targetId: null });
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <FunLoader />;
 
   if (isFinished) {
     return (

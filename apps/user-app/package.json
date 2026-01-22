@@ -13,7 +13,9 @@
     "fast-xml-parser": "^5.3.3",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "@project-bot/ui": "workspace:*",
+    "@project-bot/tailwind-config": "workspace:*"
   },
   "devDependencies": {
     "@module-federation/vite": "^1.0.0",

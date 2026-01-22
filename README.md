@@ -74,12 +74,3 @@ project-bot/
 └── pnpm-workspace.yaml    # Workspace definition
 ```
 
-## 🤝 Contributing
-
-1. **New Features**: Create a feature branch from `main`.
-2. **Changes**: Make changes in the specific app or package.
-3. **Testing**: Verify changes by running `pnpm dev` and checking the Host.
-4. **Pull Request**: Submit a PR describing your changes.
-
-## 📄 License
-[Proprietary / MIT - Specify License Here]
