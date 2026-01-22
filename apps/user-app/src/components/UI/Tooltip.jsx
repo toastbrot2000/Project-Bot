@@ -1,8 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export function Tooltip({ content, onClose, triggerElement }) {
-    const isDesktop = window.matchMedia('(min-width: 1025px)').matches;
+    const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 1025px)').matches);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(min-width: 1025px)');
+        const handler = (e) => setIsDesktop(e.matches);
+
+        // Add listener
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
+    }, []);
 
     useEffect(() => {
         const handleEsc = (e) => {
