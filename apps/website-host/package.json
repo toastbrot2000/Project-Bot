@@ -12,6 +12,8 @@
   "dependencies": {
     "@project-bot/shared-flow": "workspace:*",
     "@project-bot/ui-theme": "workspace:*",
+    "@project-bot/ui": "workspace:*",
+    "@project-bot/tailwind-config": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^6.20.0"

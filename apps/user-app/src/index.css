@@ -16,11 +16,16 @@ body {
 #main-content {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Align items to the top */
+  align-items: center;
   width: 100%;
-  max-width: 1600px; /* Increase max-width for wider screens */
-  gap: 24px;
-  height: calc(var(--vh, 1vh) * 100); /* Use JS-calculated vh */
+  max-width: 1600px;
+  margin: 0 auto;
+  /* FIX: Center the wrapper on wide screens */
+  gap: 4px;
+  /* Reserve space for footer (approx 60-80px) */
+  height: calc(100dvh - 80px);
+  /* dvh accounts for mobile browser toolbars */
+  min-height: 0;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -33,9 +38,12 @@ body {
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  height: 100%;
+  height: 90vh;
   display: flex;
-  flex-shrink: 0; /* Prevent chat container from shrinking */
+  flex-shrink: 0;
+  flex-direction: column;
+  display: flex;
+  flex-shrink: 0;
   flex-direction: column;
 }
 
@@ -43,17 +51,23 @@ body {
 #chat-box {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Start from top on desktop */
+  justify-content: flex-start;
+  /* Start from top on desktop */
   gap: 14px;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
-  padding-right: 4px; /* Space for scrollbar */
-  overscroll-behavior: contain; /* Prevent overscroll on mobile */
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  /* iOS smooth scrolling */
+  padding-right: 4px;
+  /* Space for scrollbar */
+  overscroll-behavior: contain;
+  /* Prevent overscroll on mobile */
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  /* Firefox */
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -76,9 +90,12 @@ body {
 
 /* Bot-Nachricht (Frage) */
 .chat-message {
-  display: flex; /* Use flexbox for alignment */
-  align-items: center; /* Vertically center icon and text */
-  gap: 8px; /* Add space between text and icon */
+  display: flex;
+  /* Use flexbox for alignment */
+  align-items: center;
+  /* Vertically center icon and text */
+  gap: 8px;
+  /* Add space between text and icon */
   background-color: #f1f1f1;
   padding: 12px 16px;
   border-radius: 20px;
@@ -92,7 +109,8 @@ body {
 
 /* Remove the extra padding on the right, as flexbox handles the layout. */
 .chat-message.has-tooltip {
-  padding-right: 16px; /* Match the default padding */
+  padding-right: 16px;
+  /* Match the default padding */
 }
 
 .chat-message.fade-in {
@@ -102,7 +120,8 @@ body {
 }
 
 .tooltip-icon {
-  flex-shrink: 0; /* Prevent the icon from shrinking */
+  flex-shrink: 0;
+  /* Prevent the icon from shrinking */
   cursor: pointer;
   color: #007aff;
   font-size: 16px;
@@ -171,49 +190,68 @@ body {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
-  width: fit-content;      /* Adjust width to content */
-  min-width: 300px;        /* Set a minimum width */
-  max-width: 80vw;         /* Allow width up to 80% of the viewport width */
-  max-height: 80vh;        /* Allow height up to 80% of the viewport height */
-  overflow-y: auto;        /* Add a scrollbar if content overflows vertically */
-  text-align: left;        /* Align text to the left for better readability of long content */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  width: fit-content;
+  /* Adjust width to content */
+  min-width: 300px;
+  /* Set a minimum width */
+  max-width: 80vw;
+  /* Allow width up to 80% of the viewport width */
+  max-height: 80vh;
+  /* Allow height up to 80% of the viewport height */
+  overflow-y: auto;
+  /* Add a scrollbar if content overflows vertically */
+  text-align: left;
+  /* Align text to the left for better readability of long content */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   animation: scaleIn 0.3s cubic-bezier(0.42, 0, 0.58, 1);
-  position: relative;      /* Establish positioning context for the close button */
+  position: relative;
+  /* Establish positioning context for the close button */
 }
 
 .tooltip-modal-content .close-icon {
   position: absolute;
   top: 16px;
   right: 16px;
-  background: #f1f1f1; /* Add a light grey background */
+  background: #f1f1f1;
+  /* Add a light grey background */
   border: none;
-  font-size: 22px; /* Adjust size for the circle */
+  font-size: 22px;
+  /* Adjust size for the circle */
   line-height: 1;
-  color: #666; /* Darker grey for better contrast */
+  color: #666;
+  /* Darker grey for better contrast */
   cursor: pointer;
   padding: 0;
   transition: background-color 0.2s ease, color 0.2s ease;
-  width: 32px; /* Set dimensions for the circle */
+  width: 32px;
+  /* Set dimensions for the circle */
   height: 32px;
-  border-radius: 50%; /* Make it a circle */
-  display: none; /* Hide by default, will be shown via JS */
+  border-radius: 50%;
+  /* Make it a circle */
+  display: none;
+  /* Hide by default, will be shown via JS */
   align-items: center;
   justify-content: center;
 }
 
 .tooltip-modal-content .close-icon:hover {
-  background-color: #e0e0e0; /* Darken background on hover */
-  color: #000; /* Make 'x' black on hover */
+  background-color: #e0e0e0;
+  /* Darken background on hover */
+  color: #000;
+  /* Make 'x' black on hover */
 }
 
 /* === Desktop Side Tooltip Panel === */
 #tooltip-side-panel {
-  flex: 0 1 auto; /* Don't grow, shrink if needed, basis is auto */
-  min-width: 380px; /* Set a minimum width for consistency */
-  max-width: 500px; /* Set a max-width for readability */
+  flex: 0 1 auto;
+  /* Don't grow, shrink if needed, basis is auto */
+  min-width: 380px;
+  /* Set a minimum width for consistency */
+  max-width: 500px;
+  /* Set a max-width for readability */
   display: flex;
-  align-self: flex-start; /* Align to the top of the flex container */
+  align-self: flex-start;
+  /* Align to the top of the flex container */
   flex-direction: column;
   background-color: #ffffff;
   border-radius: 20px;
@@ -221,19 +259,24 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
   animation: slideInFromRight 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
-  overflow: hidden; /* Prevent content from spilling during animation */
+  overflow: hidden;
+  margin-left: 20px;
+  /* Prevent content from spilling during animation */
 }
 
 #tooltip-side-panel.is-hiding {
   animation: slideOutToRight 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
-  min-width: 0; /* Allow shrinking to 0 during animation */
+  min-width: 0;
+  /* Allow shrinking to 0 during animation */
 }
 
 .tooltip-side-panel-header {
   display: flex;
-  justify-content: space-between; /* Align title left, button right */
+  justify-content: space-between;
+  /* Align title left, button right */
   align-items: center;
-  margin-bottom: 16px; /* Add some space below the header */
+  margin-bottom: 16px;
+  /* Add some space below the header */
 }
 
 .tooltip-side-panel-header h2 {
@@ -244,7 +287,8 @@ body {
 
 .tooltip-side-panel-header .close-icon {
   /* Re-use styles from modal close icon */
-  position: static; /* Overrides absolute positioning from modal style */
+  position: static;
+  /* Overrides absolute positioning from modal style */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,14 +309,17 @@ body {
   flex: 1;
   overflow-y: auto;
   font-size: 15px;
-  padding-right: 8px; /* Add some padding for the scrollbar */
-  min-height: 0; /* Prevents flexbox overflow issues */
+  padding-right: 8px;
+  /* Add some padding for the scrollbar */
+  min-height: 0;
+  /* Prevents flexbox overflow issues */
   line-height: 1.6;
 }
 
 .tooltip-side-panel-content h3 {
   color: #007aff;
 }
+
 .tooltip-side-panel-content p:first-child {
   margin-top: 0;
 }
@@ -293,20 +340,22 @@ body {
 
 /* Styling for content within the tooltip modal */
 .tooltip-modal-content h2 {
-  font-size: 1.5em; /* Larger heading for main title */
+  font-size: 1.5em;
+  /* Larger heading for main title */
   margin-top: 0;
   margin-bottom: 15px;
   color: #333;
 }
 
 .tooltip-modal-content h3 {
-  color: #007aff; 
+  color: #007aff;
 }
 
 .tooltip-modal-content ul {
   padding-left: 20px;
   margin-top: 10px;
 }
+
 .tooltip-modal-content li {
   margin-bottom: 5px;
 }
@@ -341,7 +390,8 @@ body {
   animation: fadeInWithBlur 0.3s cubic-bezier(0.42, 0, 0.58, 1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: opacity 0.3s ease; /* Add this line */
+  transition: opacity 0.3s ease;
+  /* Add this line */
 }
 
 /* New class for fade-out transition on dialogs */
@@ -395,8 +445,10 @@ body {
   color: #007aff;
   padding: 10px 14px;
   border-radius: 20px;
-  max-width: 75%; /* Match chat-message */
-  font-size: 15px; /* Match chat-message */
+  max-width: 75%;
+  /* Match chat-message */
+  font-size: 15px;
+  /* Match chat-message */
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(37, 99, 235, 0.1);
   align-self: flex-end;
@@ -417,7 +469,8 @@ body {
 }
 
 .answer-bubble:hover {
-  background-color: #eef5ff; /* A light blue, more cohesive with the brand color */
+  background-color: #eef5ff;
+  /* A light blue, more cohesive with the brand color */
 }
 
 .answer-bubble.selected {
@@ -483,7 +536,7 @@ body {
   background: white;
   padding: 20px 30px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
@@ -537,21 +590,26 @@ body {
 #results-page {
   width: 100%;
   max-width: 600px;
-  margin: 20px auto; /* Reduced top margin */
+  margin: 20px auto;
+  /* Reduced top margin */
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* Consistent font */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Consistent font */
 }
 
 .results-content {
-  background: #f8f9fa; /* Light grey background to make cards stand out */
+  background: #f8f9fa;
+  /* Light grey background to make cards stand out */
   border-radius: 28px;
   padding: 32px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06); /* Softer shadow */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  /* Softer shadow */
 }
 
 #recommendations-container {
   text-align: center;
-  margin-bottom: 32px; /* Increased spacing */
+  margin-bottom: 32px;
+  /* Increased spacing */
   color: #202124;
 }
 
@@ -566,13 +624,17 @@ body {
 }
 
 .documents-section {
-  margin-bottom: 24px; /* Space between cards */
+  margin-bottom: 24px;
+  /* Space between cards */
 }
+
 .results-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px; /* Space between the two buttons */
-  margin-top: 32px; /* Space above the button group */
+  gap: 12px;
+  /* Space between the two buttons */
+  margin-top: 32px;
+  /* Space above the button group */
 }
 
 .results-actions button {
@@ -626,16 +688,21 @@ body {
 .card-header {
   margin: 0;
   padding: 16px 20px;
-  font-size: 20px; /* Larger font size like tooltip h2 */
+  font-size: 20px;
+  /* Larger font size like tooltip h2 */
   font-weight: 600;
-  color: #202124; /* Darker color like tooltip h2 */
-  border-bottom: 1px solid #e8eaed; /* Separator line */
+  color: #202124;
+  /* Darker color like tooltip h2 */
+  border-bottom: 1px solid #e8eaed;
+  /* Separator line */
 }
 
 .document-item {
   /* The container for each document entry */
-  padding: 14px 20px; /* Increased vertical padding */
-  border-bottom: 1px solid #f1f3f4; /* Lighter separator for items */
+  padding: 14px 20px;
+  /* Increased vertical padding */
+  border-bottom: 1px solid #f1f3f4;
+  /* Lighter separator for items */
   background-color: #fff;
 }
 
@@ -660,59 +727,77 @@ body {
 
 @media (max-width: 600px) {
   body {
-    background-color: #ffffff; /* Match chat container background for seamless look */
+    background-color: #ffffff;
+    /* Match chat container background for seamless look */
   }
-  
+
   #chat-container {
-    border-radius: 0; /* Remove border-radius for a full-screen look */
+    border-radius: 0;
+    /* Remove border-radius for a full-screen look */
     padding: 16px;
-    height: 100%; /* Ensure it fills the body */
-    box-sizing: border-box; /* Include padding in height calculation */ 
+    height: 100%;
+    /* Ensure it fills the body */
+    box-sizing: border-box;
+    /* Include padding in height calculation */
   }
-  
+
   #main-content {
-    padding: 0; /* Remove padding for edge-to-edge feel */
+    padding: 0;
+    /* Remove padding for edge-to-edge feel */
     gap: 0;
   }
 
   #chat-box {
     display: flex;
     flex-direction: column;
-    height: 100%; /* Make chat-box fill the container */
+    height: 100%;
+    /* Make chat-box fill the container */
     gap: 12px;
-    justify-content: flex-start; /* Start from top, JS will handle scrolling */
-    min-height: 0; /* Fix for flexbox overflow */
-    overflow-y: auto; /* Enable vertical scrolling */
+    justify-content: flex-start;
+    /* Start from top, JS will handle scrolling */
+    min-height: 0;
+    /* Fix for flexbox overflow */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  
+
   .chat-message {
-    font-size: 18px; /* Slightly larger font for readability */
-    padding: 12px 16px; /* Increase padding for more space */
-    padding-right: 45px; /* Adjust for larger tooltip icon */
+    font-size: 18px;
+    /* Slightly larger font for readability */
+    padding: 12px 16px;
+    /* Increase padding for more space */
+    padding-right: 45px;
+    /* Adjust for larger tooltip icon */
     max-width: 75%;
   }
-  
+
   .tooltip-icon {
     /* Make the tappable area larger for mobile */
     width: 30px;
     height: 30px;
-    right: 12px; /* Adjust position for the new size */
-    font-size: 20px; /* Increase icon size */
+    right: 12px;
+    /* Adjust position for the new size */
+    font-size: 20px;
+    /* Increase icon size */
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   .tooltip-modal-content {
-    font-size: 18px; /* Increase base font size for modal content */
+    font-size: 18px;
+    /* Increase base font size for modal content */
   }
 
   .tooltip-modal-content .close-tooltip {
-    font-size: 18px; /* Increase font size for the 'Got it' button */
-    padding: 12px 20px; /* Adjust padding for the larger text */
-    border-radius: 8px; /* Slightly larger radius to match the scale */
+    font-size: 18px;
+    /* Increase font size for the 'Got it' button */
+    padding: 12px 20px;
+    /* Adjust padding for the larger text */
+    border-radius: 8px;
+    /* Slightly larger radius to match the scale */
   }
 
   /* Increase font size for confirmation and resume dialogs on mobile */
@@ -722,17 +807,19 @@ body {
 
   .dialog-content button {
     font-size: 18px;
-    padding: 12px 20px; /* Adjust padding for larger text */
+    padding: 12px 20px;
+    /* Adjust padding for larger text */
   }
 
 
   .answer-bubble {
-    font-size: 18px; 
+    font-size: 18px;
     max-width: 80%;
     font-weight: 500;
-    border-radius: 999px; /* Ensure pill shape on mobile */
+    border-radius: 999px;
+    /* Ensure pill shape on mobile */
   }
-  
+
   .tooltip-text {
     width: 160px;
     right: 0;
@@ -740,7 +827,7 @@ body {
     transform: translateX(25%);
     max-width: calc(100vw - 20px);
   }
-  
+
   #results-page {
     margin: 20px 10px;
     padding: 16px;
@@ -764,7 +851,7 @@ body {
     max-width: calc(100vw - 16px);
     transform: translateX(20%);
   }
-  
+
   .chat-message {
     max-width: 75%;
   }
@@ -775,6 +862,7 @@ body {
   .chat-message {
     font-size: 14px;
   }
+
   .answer-bubble {
     font-size: 14px;
   }
@@ -789,13 +877,13 @@ body {
     transform: translateX(15%);
     margin-bottom: 4px;
   }
-  
+
   .chat-message {
     padding-right: 22px;
   }
-  
+
   #chat-container {
-    height: calc(100vh - 10px);
+    height: calc(100dvh - 10px);
     padding: 12px;
   }
 }
@@ -807,6 +895,7 @@ body {
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -818,6 +907,7 @@ body {
     opacity: 0;
     backdrop-filter: blur(0px);
   }
+
   to {
     opacity: 1;
     backdrop-filter: blur(8px);
@@ -829,6 +919,7 @@ body {
     transform: scale(0.9);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -839,6 +930,7 @@ body {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -848,6 +940,7 @@ body {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(100%);
   }
