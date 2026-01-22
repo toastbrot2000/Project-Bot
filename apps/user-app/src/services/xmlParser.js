@@ -17,7 +17,7 @@ export class QuestionService {
 
     async fetchQuestions() {
         try {
-            const response = await fetch('/questions.xml');
+            const response = await fetch(`/questions.xml?v=${Date.now()}`);
             if (!response.ok) throw new Error('Failed to load questions.xml');
 
             const xmlText = await response.text();
