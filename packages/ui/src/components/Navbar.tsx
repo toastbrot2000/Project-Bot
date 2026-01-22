@@ -27,8 +27,8 @@ export function Navbar({ className, logo, links, userMenu, ...props }: NavbarPro
                                     key={link.href}
                                     href={link.href}
                                     className={cn(
-                                        "transition-colors hover:text-foreground/80",
-                                        link.active ? "text-foreground" : "text-foreground/60"
+                                        "transition-colors hover:text-primary/80",
+                                        link.active ? "text-primary font-semibold" : "text-primary/60"
                                     )}
                                 >
                                     {link.label}

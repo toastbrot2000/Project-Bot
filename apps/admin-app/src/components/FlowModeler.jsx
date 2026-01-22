@@ -24,7 +24,7 @@ import { savePositions, clearPositions } from '../utils/positionManager';
 import { flowToXML, downloadXML } from '../utils/flowToXML';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { useHelperLines } from '../hooks/useFlowHelperLines';
-import { useToast } from '@project-bot/ui';
+import { useToast, Button } from '@project-bot/ui';
 
 const nodeTypes = {
     questionNode: QuestionNode,
@@ -34,21 +34,22 @@ const nodeTypes = {
 };
 
 const StartOverlay = ({ onCreate, onLoad }) => (
-    <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col justify-center items-center z-[1000] text-foreground">
+    <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col justify-center items-center z-30 text-foreground">
         <h2 className="mb-8 text-2xl font-bold">Welcome to Flow Modeler</h2>
         <div className="flex gap-5">
-            <button
+            <Button
                 onClick={onCreate}
-                className="px-6 py-3 text-base cursor-pointer bg-primary text-primary-foreground border-none rounded-lg font-semibold shadow-sm hover:bg-primary/90 transition-colors"
+                size="lg"
             >
                 Create New File
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={onLoad}
-                className="px-6 py-3 text-base cursor-pointer bg-background text-primary border-2 border-primary rounded-lg font-semibold shadow-sm hover:bg-muted transition-colors"
+                variant="outline"
+                size="lg"
             >
                 Load Existing File
-            </button>
+            </Button>
         </div>
     </div>
 );
