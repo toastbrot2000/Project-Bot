@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import './index.css';
 import { useChatFlow } from './hooks/useChatFlow';
 import { ChatMessage } from './components/Chat/ChatMessage';
 import { AnswerOptions } from './components/Chat/AnswerOptions';
