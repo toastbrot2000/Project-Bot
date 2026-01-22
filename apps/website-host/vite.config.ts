@@ -19,7 +19,11 @@ export default defineConfig({
           entry: 'http://localhost:5002/remoteEntry.js',
         },
       },
-      shared: ['react', 'react-dom', 'reactflow'],
+      shared: {
+        react: { singleton: true },
+        'react-dom': { singleton: true },
+        reactflow: { singleton: true },
+      },
       dts: false,
     }),
   ],

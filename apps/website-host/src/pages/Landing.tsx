@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import heroBg from '../assets/hero_bg.png';
+import heroBg from '../assets/hero_bg.webp';
 
 const Landing = () => {
     return (
