@@ -4,7 +4,7 @@ import { cn } from "../lib/utils"
 
 export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
     logo?: React.ReactNode;
-    links?: { label: string; href: string; active?: boolean }[];
+    links?: { label: string; href: string; active?: boolean; target?: string }[];
     userMenu?: React.ReactNode;
 }
 
@@ -26,6 +26,7 @@ export function Navbar({ className, logo, links, userMenu, ...props }: NavbarPro
                                 <a
                                     key={link.href}
                                     href={link.href}
+                                    target={link.target}
                                     className={cn(
                                         "transition-colors hover:text-primary/80",
                                         link.active ? "text-primary font-semibold" : "text-primary/60"

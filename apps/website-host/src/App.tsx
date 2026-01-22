@@ -17,6 +17,7 @@ const AppNavbar = () => {
     { label: 'Home', href: '/', active: location.pathname === '/' },
     { label: 'User App', href: '/app', active: location.pathname.startsWith('/app') },
     { label: 'Admin', href: '/admin', active: location.pathname.startsWith('/admin') },
+    { label: 'CMS', href: 'http://localhost:1337/admin', target: '_blank', active: false },
   ];
 
   return (
