@@ -1,0 +1,13 @@
+{
+    "name": "@project-bot/shared-flow",
+    "version": "0.0.0",
+    "main": "index.ts",
+    "scripts": {},
+    "dependencies": {
+        "reactflow": "^11.0.0"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0"
+    }
+}
