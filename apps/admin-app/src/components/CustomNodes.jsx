@@ -47,20 +47,12 @@ export const QuestionNode = memo(({ data, id, selected }) => {
 
     return (
         <div
-            style={{
-                padding: '15px 20px',
-                borderRadius: '8px',
-                background: '#f0fdf4',
-                color: '#15803d',
-                border: selected ? '2px solid #f59e0b' : '2px solid #22c55e',
-                minWidth: '250px',
-                maxWidth: '300px',
-                boxShadow: selected ? '0 0 0 4px rgba(245, 158, 11, 0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
-                position: 'relative',
-                transition: 'all 0.2s ease'
-            }}
+            className={`min-w-[250px] max-w-[300px] rounded-lg border-2 p-4 transition-all duration-200 relative ${selected
+                    ? 'bg-primary/10 border-primary ring-4 ring-primary/20'
+                    : 'bg-card border-border hover:border-primary/50'
+                }`}
         >
-            <Handle type="target" position={Position.Top} />
+            <Handle type="target" position={Position.Top} className="!bg-primary" />
 
             {/* Question text - editable on double click */}
             {isEditingQuestion ? (
@@ -69,28 +61,11 @@ export const QuestionNode = memo(({ data, id, selected }) => {
                     onChange={(e) => setQuestionText(e.target.value)}
                     onBlur={handleQuestionBlur}
                     autoFocus
-                    style={{
-                        width: '100%',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        background: 'rgba(255,255,255,0.9)',
-                        color: '#1f2937',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '4px',
-                        resize: 'vertical',
-                        minHeight: '40px'
-                    }}
+                    className="w-full text-sm font-medium bg-background text-foreground rounded p-1 min-h-[40px] resize-y focus:outline-none"
                 />
             ) : (
                 <div
-                    style={{
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        marginBottom: '0',
-                        cursor: 'text',
-                        paddingRight: '20px'
-                    }}
+                    className="text-sm font-medium text-foreground mb-0 cursor-text pr-5"
                     onDoubleClick={handleQuestionDoubleClick}
                 >
                     {questionText}
@@ -99,44 +74,26 @@ export const QuestionNode = memo(({ data, id, selected }) => {
 
             {/* Tooltip Icon - Visual Indicator (top-right) */}
             <div
-                style={{
-                    position: 'absolute',
-                    top: '5px',
-                    right: '5px',
-                    opacity: tooltipText ? 1 : 0.3,
-                    filter: tooltipText ? 'none' : 'grayscale(100%)',
-                    fontSize: '14px',
-                    cursor: 'help'
-                }}
+                className={`absolute top-1 right-1 text-sm cursor-help ${tooltipText ? 'opacity-100 grayscale-0' : 'opacity-30 grayscale'
+                    }`}
                 title={tooltipText ? "Has tooltip" : "No tooltip set"}
             >
                 💡
             </div>
 
-            {/* Tooltip Field - Bottom of node (truncated, opens modal on double-click) */}
-            <div style={{
-                marginTop: '10px',
-                paddingTop: '8px',
-                borderTop: '1px solid rgba(22, 163, 74, 0.3)',
-                fontSize: '12px',
-                minHeight: '20px'
-            }}>
+            {/* Tooltip Field */}
+            <div className="mt-2.5 pt-2 border-t border-border text-xs min-h-[20px]">
                 <div
                     onDoubleClick={openTooltipModal}
-                    style={{
-                        cursor: 'pointer',
-                        fontStyle: tooltipText ? 'normal' : 'italic',
-                        opacity: tooltipText ? 1 : 0.7,
-                        color: '#166534',
-                        lineHeight: '1.4'
-                    }}
+                    className={`cursor-pointer leading-tight ${tooltipText ? 'not-italic opacity-100 text-muted-foreground' : 'italic opacity-70 text-muted-foreground/50'
+                        }`}
                     title="Double-click to edit tooltip"
                 >
                     {truncateText(tooltipText || "Double-click to add tooltip...")}
                 </div>
             </div>
 
-            <Handle type="source" position={Position.Bottom} />
+            <Handle type="source" position={Position.Bottom} className="!bg-primary" />
 
             {/* Tooltip Modal */}
             <TextModal
@@ -172,61 +129,28 @@ export const OptionNode = memo(({ data, id, selected }) => {
     };
 
     return (
-        <div style={{
-            width: '100px',
-            height: '100px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative'
-        }}>
+        <div className="w-[100px] h-[100px] flex items-center justify-center relative">
             {/* Diamond Shape Background */}
-            <div style={{
-                position: 'absolute',
-                width: '70px',
-                height: '70px',
-                background: '#fef3c7',
-                border: selected ? '2px solid #2563eb' : '2px solid #d97706',
-                transform: 'rotate(45deg)',
-                boxShadow: selected ? '0 0 0 4px rgba(37, 99, 235, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
-                zIndex: 0,
-                transition: 'all 0.2s ease'
-            }} />
+            <div
+                className={`absolute w-[70px] h-[70px] transform rotate-45 transition-all duration-200 ${selected
+                        ? 'bg-secondary border-2 border-secondary-foreground shadow-[0_0_0_4px_rgba(var(--secondary),0.3)]'
+                        : 'bg-secondary/50 border-2 border-secondary-foreground/50 hover:bg-secondary/80'
+                    }`}
+            />
 
             {/* Content */}
-            <div style={{ zIndex: 1, position: 'relative', width: '100%', textAlign: 'center' }}>
+            <div className="z-10 relative w-full text-center">
                 {isEditing ? (
                     <textarea
                         value={optionText}
                         onChange={(e) => setOptionText(e.target.value)}
                         onBlur={handleBlur}
                         autoFocus
-                        style={{
-                            fontSize: '10px',
-                            fontWeight: '600',
-                            textAlign: 'center',
-                            background: 'rgba(255,255,255,0.9)',
-                            color: '#1f2937',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            padding: '2px',
-                            width: '90px',
-                            height: '40px',
-                            resize: 'none'
-                        }}
+                        className="text-[10px] font-semibold text-center bg-background text-foreground border border-border rounded p-0.5 w-[90px] h-[40px] resize-none focus:outline-none"
                     />
                 ) : (
                     <div
-                        style={{
-                            fontSize: '10px',
-                            fontWeight: '600',
-                            color: '#92400e',
-                            textAlign: 'center',
-                            padding: '0 5px',
-                            cursor: 'text',
-                            wordWrap: 'break-word',
-                            maxWidth: '100px'
-                        }}
+                        className="text-[10px] font-semibold text-secondary-foreground text-center px-1 cursor-text break-words max-w-[100px]"
                         onDoubleClick={handleDoubleClick}
                     >
                         {optionText}
@@ -234,31 +158,11 @@ export const OptionNode = memo(({ data, id, selected }) => {
                 )}
             </div>
 
-            {/* Handles at ALL corners of the diamond */}
-            <Handle
-                type="target"
-                position={Position.Top}
-                id="top"
-                style={{ top: '0px', background: '#d97706', zIndex: 2 }}
-            />
-            <Handle
-                type="source"
-                position={Position.Bottom}
-                id="bottom"
-                style={{ bottom: '0px', background: '#d97706', zIndex: 2 }}
-            />
-            <Handle
-                type="source"
-                position={Position.Left}
-                id="left"
-                style={{ left: '0px', background: '#d97706', zIndex: 2 }}
-            />
-            <Handle
-                type="source"
-                position={Position.Right}
-                id="right"
-                style={{ right: '0px', background: '#d97706', zIndex: 2 }}
-            />
+            {/* Handles */}
+            <Handle type="target" position={Position.Top} id="top" className="!bg-secondary-foreground !w-2 !h-2" />
+            <Handle type="source" position={Position.Bottom} id="bottom" className="!bg-secondary-foreground !w-2 !h-2" />
+            <Handle type="source" position={Position.Left} id="left" className="!bg-secondary-foreground !w-2 !h-2" />
+            <Handle type="source" position={Position.Right} id="right" className="!bg-secondary-foreground !w-2 !h-2" />
         </div>
     );
 });
@@ -313,89 +217,48 @@ export const DocumentNode = memo(({ data, id, selected }) => {
     const isMandatory = docType === 'mandatory';
 
     return (
-        <div style={{
-            padding: '12px 18px',
-            background: isMandatory ? '#dbeafe' : '#e0f2fe',
-            border: selected ? '2px solid #2563eb' : `2px solid ${isMandatory ? '#2563eb' : '#0ea5e9'}`,
-            borderRadius: '4px',
-            minWidth: '220px',
-            maxWidth: '280px',
-            boxShadow: selected ? '0 0 0 4px rgba(37, 99, 235, 0.3)' : '0 2px 4px rgba(0,0,0,0.08)',
-            position: 'relative',
-            transition: 'all 0.2s ease'
-        }}>
-            {/* Connection Handle on the RIGHT side */}
-            <Handle type="target" position={Position.Right} style={{ background: '#2563eb' }} />
+        <div
+            className={`min-w-[220px] max-w-[280px] p-3 rounded border-2 transition-all duration-200 relative ${isMandatory ? 'bg-accent/20' : 'bg-muted/20'
+                } ${selected
+                    ? 'border-accent ring-4 ring-accent/20'
+                    : `border-${isMandatory ? 'accent' : 'muted-foreground/30'} hover:border-accent/70`
+                }`}
+        >
+            <Handle type="target" position={Position.Right} className="!bg-accent-foreground" />
 
-            {/* Description Icon - Visual Indicator (top-right) */}
             <div
-                style={{
-                    position: 'absolute',
-                    top: '5px',
-                    right: '5px',
-                    opacity: descriptionText ? 1 : 0.3,
-                    filter: descriptionText ? 'none' : 'grayscale(100%)',
-                    fontSize: '14px',
-                    cursor: 'help'
-                }}
+                className={`absolute top-1 right-1 text-sm cursor-help ${descriptionText ? 'opacity-100 grayscale-0' : 'opacity-30 grayscale'
+                    }`}
                 title={descriptionText ? "Has description" : "No description set"}
             >
                 📝
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '18px' }}>📄</span>
-                <div style={{ flex: 1 }}>
-                    {/* Document label - editable */}
+            <div className="flex items-center gap-2">
+                <span className="text-lg">📄</span>
+                <div className="flex-1">
+                    {/* Document label */}
                     {isEditingLabel ? (
                         <textarea
                             value={docText}
                             onChange={(e) => setDocText(e.target.value)}
                             onBlur={handleLabelBlur}
                             autoFocus
-                            style={{
-                                width: '100%',
-                                fontSize: '13px',
-                                fontWeight: '600',
-                                color: '#1e40af',
-                                background: 'rgba(255,255,255,0.9)',
-                                border: 'none',
-                                borderRadius: '4px',
-                                padding: '4px',
-                                resize: 'vertical',
-                                minHeight: '30px'
-                            }}
+                            className="w-full text-[13px] font-semibold text-foreground bg-background/90 rounded p-1 min-h-[30px] resize-y focus:outline-none"
                         />
                     ) : (
                         <div
-                            style={{
-                                fontWeight: '600',
-                                color: '#1e40af',
-                                fontSize: '13px',
-                                cursor: 'text',
-                                paddingRight: '20px'
-                            }}
+                            className="text-[13px] font-semibold text-foreground cursor-text pr-5"
                             onDoubleClick={handleLabelDoubleClick}
                         >
                             {docText}
                         </div>
                     )}
 
-                    {/* Document type - clickable to toggle */}
+                    {/* Document type */}
                     <div
-                        style={{
-                            fontSize: '10px',
-                            color: '#3730a3',
-                            textTransform: 'uppercase',
-                            marginTop: '4px',
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                            display: 'inline-block',
-                            padding: '2px 6px',
-                            background: isMandatory ? '#2563eb' : '#0ea5e9',
-                            color: 'white',
-                            borderRadius: '3px'
-                        }}
+                        className={`text-[10px] uppercase mt-1 cursor-pointer select-none inline-block py-0.5 px-1.5 rounded text-white ${isMandatory ? 'bg-destructive' : 'bg-muted-foreground'
+                            }`}
                         onClick={handleTypeClick}
                         title="Click to toggle between Mandatory/Optional"
                     >
@@ -404,30 +267,18 @@ export const DocumentNode = memo(({ data, id, selected }) => {
                 </div>
             </div>
 
-            {/* Description Field - Bottom of node (truncated, opens modal on double-click) */}
-            <div style={{
-                marginTop: '10px',
-                paddingTop: '8px',
-                borderTop: '1px solid rgba(59, 130, 246, 0.3)',
-                fontSize: '11px',
-                minHeight: '18px'
-            }}>
+            {/* Description Field */}
+            <div className="mt-2.5 pt-2 border-t border-border text-[11px] min-h-[18px]">
                 <div
                     onDoubleClick={openDescriptionModal}
-                    style={{
-                        cursor: 'pointer',
-                        fontStyle: descriptionText ? 'normal' : 'italic',
-                        opacity: descriptionText ? 1 : 0.7,
-                        color: '#1e40af',
-                        lineHeight: '1.4'
-                    }}
+                    className={`cursor-pointer leading-tight ${descriptionText ? 'not-italic opacity-100 text-muted-foreground' : 'italic opacity-70 text-muted-foreground/50'
+                        }`}
                     title="Double-click to edit description"
                 >
                     {truncateText(descriptionText || "Double-click to add description...")}
                 </div>
             </div>
 
-            {/* Description Modal */}
             <TextModal
                 isOpen={showDescriptionModal}
                 onClose={() => setShowDescriptionModal(false)}
@@ -441,24 +292,9 @@ export const DocumentNode = memo(({ data, id, selected }) => {
     );
 });
 
-// Waypoint Node for Edge Routing
 export const WaypointNode = memo(({ data, isConnectable }) => {
     return (
-        <div style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: '#9ca3af', // Neutral gray
-            border: '1px solid #4b5563', // Darker gray border
-            cursor: 'grab',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            transform: 'translate(-50%, -50%)' // Ensure true centering
-        }}>
-            {/* No handles needed as the edge is drawn through this node */}
+        <div className="w-2 h-2 rounded-full bg-muted-foreground/50 border border-muted-foreground cursor-grab flex items-center justify-center translate-x-[-50%] translate-y-[-50%]">
         </div>
     );
 });
@@ -483,58 +319,26 @@ export const EndNode = memo(({ data, id, selected }) => {
     };
 
     return (
-        <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            background: '#fee2e2', // Light red
-            border: selected ? '2px solid #ef4444' : '2px solid #dc2626', // Red border
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxShadow: selected ? '0 0 0 4px rgba(239, 68, 68, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
-            transition: 'all 0.2s ease'
-        }}>
-            <Handle type="target" position={Position.Top} style={{ background: '#dc2626' }} />
+        <div
+            className={`w-[60px] h-[60px] rounded-full flex items-center justify-center relative transition-all duration-200 ${selected
+                    ? 'bg-destructive/20 border-2 border-destructive shadow-[0_0_0_4px_rgba(var(--destructive),0.3)]'
+                    : 'bg-destructive/10 border-2 border-destructive/80'
+                }`}
+        >
+            <Handle type="target" position={Position.Top} className="!bg-destructive" />
 
-            <div style={{ zIndex: 1, position: 'relative', width: '100%', textAlign: 'center' }}>
+            <div className="z-10 relative w-full text-center">
                 {isEditing ? (
                     <textarea
                         value={labelText}
                         onChange={(e) => setLabelText(e.target.value)}
                         onBlur={handleBlur}
                         autoFocus
-                        style={{
-                            fontSize: '10px',
-                            fontWeight: '600',
-                            textAlign: 'center',
-                            background: 'rgba(255,255,255,0.9)',
-                            color: '#7f1d1d',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '2px',
-                            width: '50px',
-                            height: '30px',
-                            resize: 'none',
-                            overflow: 'hidden',
-                            display: 'block',
-                            margin: '0 auto'
-                        }}
+                        className="text-[10px] font-semibold text-center bg-background text-destructive-foreground border-none rounded p-0.5 w-[50px] h-[30px] resize-none overflow-hidden block mx-auto focus:outline-none"
                     />
                 ) : (
                     <div
-                        style={{
-                            fontSize: '10px',
-                            fontWeight: '700',
-                            color: '#991b1b',
-                            textAlign: 'center',
-                            cursor: 'text',
-                            wordWrap: 'break-word',
-                            maxWidth: '50px',
-                            lineHeight: '1.2',
-                            margin: '0 auto'
-                        }}
+                        className="text-[10px] font-bold text-destructive cursor-text max-w-[50px] leading-tight mx-auto break-words"
                         onDoubleClick={handleDoubleClick}
                     >
                         {labelText}
@@ -544,3 +348,4 @@ export const EndNode = memo(({ data, id, selected }) => {
         </div>
     );
 });
+

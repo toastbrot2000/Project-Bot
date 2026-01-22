@@ -1,8 +1,76 @@
 {
-  "hash": "4ede8f52",
+  "hash": "f59abf05",
   "configHash": "80ff0ab9",
-  "lockfileHash": "d6a93886",
-  "browserHash": "bd71cf36",
-  "optimized": {},
-  "chunks": {}
+  "lockfileHash": "f575b6ae",
+  "browserHash": "ea2b7b02",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../../../node_modules/.pnpm/react@19.2.3/node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "86410e1a",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../../../node_modules/.pnpm/react@19.2.3/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "3b50b033",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "d3e27c40",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../../../node_modules/.pnpm/react-router-dom@6.30.3_rea_c391e4443f6052da7c8ddcd042b7c12d/node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "5021095d",
+      "needsInterop": false
+    },
+    "clsx": {
+      "src": "../../../../node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs",
+      "file": "clsx.js",
+      "fileHash": "90edb5e4",
+      "needsInterop": false
+    },
+    "tailwind-merge": {
+      "src": "../../../../node_modules/.pnpm/tailwind-merge@2.6.0/node_modules/tailwind-merge/dist/bundle-mjs.mjs",
+      "file": "tailwind-merge.js",
+      "fileHash": "323ae366",
+      "needsInterop": false
+    },
+    "class-variance-authority": {
+      "src": "../../../../node_modules/.pnpm/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/index.mjs",
+      "file": "class-variance-authority.js",
+      "fileHash": "cf53c172",
+      "needsInterop": false
+    },
+    "react-dom": {
+      "src": "../../../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "77d5adb1",
+      "needsInterop": true
+    },
+    "lucide-react": {
+      "src": "../../../../node_modules/.pnpm/lucide-react@0.344.0_react@19.2.3/node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "0654e43f",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-EVNWH6M7": {
+      "file": "chunk-EVNWH6M7.js"
+    },
+    "chunk-2CT3SHSP": {
+      "file": "chunk-2CT3SHSP.js"
+    },
+    "chunk-677POAAG": {
+      "file": "chunk-677POAAG.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
 }

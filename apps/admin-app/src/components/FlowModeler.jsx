@@ -24,6 +24,7 @@ import { savePositions, clearPositions } from '../utils/positionManager';
 import { flowToXML, downloadXML } from '../utils/flowToXML';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { useHelperLines } from '../hooks/useFlowHelperLines';
+import { useToast } from '@project-bot/ui';
 
 const nodeTypes = {
     questionNode: QuestionNode,
@@ -33,52 +34,18 @@ const nodeTypes = {
 };
 
 const StartOverlay = ({ onCreate, onLoad }) => (
-    <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(5px)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
-        color: '#1f2937'
-    }}>
-        <h2 style={{ marginBottom: '30px', fontSize: '24px', fontWeight: 'bold' }}>Welcome to Flow Modeler</h2>
-        <div style={{ display: 'flex', gap: '20px' }}>
+    <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col justify-center items-center z-[1000] text-foreground">
+        <h2 className="mb-8 text-2xl font-bold">Welcome to Flow Modeler</h2>
+        <div className="flex gap-5">
             <button
                 onClick={onCreate}
-                style={{
-                    padding: '12px 24px',
-                    fontSize: '16px',
-                    cursor: 'pointer',
-                    background: '#2563eb',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
+                className="px-6 py-3 text-base cursor-pointer bg-primary text-primary-foreground border-none rounded-lg font-semibold shadow-sm hover:bg-primary/90 transition-colors"
             >
                 Create New File
             </button>
             <button
                 onClick={onLoad}
-                style={{
-                    padding: '12px 24px',
-                    fontSize: '16px',
-                    cursor: 'pointer',
-                    background: 'white',
-                    color: '#2563eb',
-                    border: '2px solid #2563eb',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
+                className="px-6 py-3 text-base cursor-pointer bg-background text-primary border-2 border-primary rounded-lg font-semibold shadow-sm hover:bg-muted transition-colors"
             >
                 Load Existing File
             </button>
@@ -87,6 +54,7 @@ const StartOverlay = ({ onCreate, onLoad }) => (
 );
 
 const FlowModelerContent = () => {
+    const { addToast } = useToast();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [edgeVisibility, setEdgeVisibility] = useState({ qToO: true, oToQ: true, doc: true });
@@ -185,25 +153,25 @@ const FlowModelerContent = () => {
         let markerEnd = { type: MarkerType.ArrowClosed };
         let style = { strokeWidth: 2 };
 
-        // Q→O edges: Thin, solid, gray
+        // Q→O edges: Thin, solid, gray (muted-foreground)
         if (sourceNode?.type === 'questionNode' && targetNode?.type === 'optionNode') {
             type = 'q-to-o';
-            style = { stroke: '#9ca3af', strokeWidth: 1 };
+            style = { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1 };
         }
-        // O→Q edges: Bold, dashed, dark gray
+        // O→Q edges: Bold, dashed, dark gray (foreground)
         else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'questionNode') {
             type = 'o-to-q';
-            style = { stroke: '#333', strokeWidth: 2, strokeDasharray: '5,5' };
+            style = { stroke: 'hsl(var(--foreground))', strokeWidth: 2, strokeDasharray: '5,5' };
         }
-        // O→D edges: Bold, dashed, blue
+        // O→D edges: Bold, dashed, blue (primary)
         else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'documentNode') {
             type = 'o-to-d';
-            style = { stroke: '#007bff', strokeWidth: 2, strokeDasharray: '5,5' };
+            style = { stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5,5' };
         }
-        // Any→End edges: Solid, red/gray
+        // Any→End edges: Solid, red (destructive)
         else if (targetNode?.type === 'endNode') {
             type = 'default';
-            style = { stroke: '#dc2626', strokeWidth: 2 };
+            style = { stroke: 'hsl(var(--destructive))', strokeWidth: 2 };
         }
 
         return { type, animated, markerEnd, style };
@@ -591,7 +559,7 @@ const FlowModelerContent = () => {
             })));
         } catch (error) {
             console.error('Error parsing XML:', error);
-            alert('Error loading XML file. Please check the file format.');
+            addToast('Error loading XML file. Please check the file format.', 'error');
         }
     }, [nodes, edges, takeSnapshot, setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop]);
 
@@ -606,7 +574,7 @@ const FlowModelerContent = () => {
                 // Optional: could show a toast here
             } catch (err) {
                 console.error('Error saving to file:', err);
-                alert('Failed to save file.');
+                addToast('Failed to save file.', 'error');
             }
         } else {
             downloadXML(xml);
@@ -630,7 +598,7 @@ const FlowModelerContent = () => {
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.error('Error saving file:', err);
-                    alert('Failed to save file.');
+                    addToast('Failed to save file.', 'error');
                 }
             }
         } else {
@@ -662,7 +630,7 @@ const FlowModelerContent = () => {
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.error('Error creating file:', err);
-                    alert('Failed to create file.');
+                    addToast('Failed to create file.', 'error');
                 }
             }
         } else {
@@ -702,7 +670,7 @@ const FlowModelerContent = () => {
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.error('Error loading file:', err);
-                    alert('Failed to load file.');
+                    addToast('Failed to load file.', 'error');
                 }
             }
         } else {
@@ -727,7 +695,7 @@ const FlowModelerContent = () => {
             event.target.value = '';
         } catch (error) {
             console.error('Error reading file:', error);
-            alert('Error reading file.');
+            addToast('Error reading file.', 'error');
         }
     }, [loadFlowFromText, clearHistory]);
 
@@ -774,7 +742,7 @@ const FlowModelerContent = () => {
             }
         }).catch((err) => {
             console.error('Error exporting Vector PDF:', err);
-            alert('Failed to export Vector PDF.');
+            addToast('Failed to export Vector PDF.', 'error');
         });
     }, [nodes]);
 
@@ -813,19 +781,11 @@ const FlowModelerContent = () => {
                 panOnDrag={[1]}
                 panOnScroll={true}
             >
-                <Background />
+                <Background gap={20} size={1} color="hsl(var(--border))" />
                 <HelperLines />
                 <Controls />
                 <MiniMap pannable zoomable />
-                <Panel position="top-right" style={{
-                    background: 'white',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                    minWidth: '200px',
-                    maxHeight: '90vh',
-                    overflowY: 'auto'
-                }}>
+                <Panel position="top-right" className="bg-card p-3 rounded-lg shadow-md min-w-[200px] max-h-[90vh] overflow-y-auto border border-border">
                     <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', color: '#1f2937' }}>
                         Drag to Add Nodes
                     </div>

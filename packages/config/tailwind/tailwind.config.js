@@ -2,9 +2,9 @@
 export default {
     darkMode: ["class"],
     content: [
-        "./index.html",
-        "./src/**/*.{js,ts,jsx,tsx}",
-        "../../packages/ui/src/**/*.{ts,tsx}"
+        "../../packages/ui/src/**/*.{ts,tsx}",
+        "./src/**/*.{ts,tsx}",
+        "./index.html"
     ],
     theme: {
         extend: {
@@ -44,8 +44,8 @@ export default {
                 },
             },
             borderRadius: {
-                lg: "var(--radius)",
-                md: "calc(var(--radius) - 2px)",
+                lg: `var(--radius)`,
+                md: `calc(var(--radius) - 2px)`,
                 sm: "calc(var(--radius) - 4px)",
             },
             fontFamily: {
@@ -54,5 +54,5 @@ export default {
             }
         },
     },
-    plugins: [],
+    plugins: [require("tailwindcss-animate")],
 }
