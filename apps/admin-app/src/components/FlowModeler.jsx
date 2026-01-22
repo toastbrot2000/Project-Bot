@@ -25,6 +25,22 @@ import { flowToXML, downloadXML } from '../utils/flowToXML';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { useHelperLines } from '../hooks/useFlowHelperLines';
 import { useToast, Button } from '@project-bot/ui';
+import {
+    FilePlus,
+    FolderOpen,
+    Save,
+    SaveAll,
+    Download,
+    Undo2,
+    Redo2,
+    Play,
+    Pause,
+    Trash2,
+    MessageSquare,
+    List,
+    FileText,
+    StopCircle
+} from 'lucide-react';
 
 const nodeTypes = {
     questionNode: QuestionNode,
@@ -34,22 +50,35 @@ const nodeTypes = {
 };
 
 const StartOverlay = ({ onCreate, onLoad }) => (
-    <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col justify-center items-center z-30 text-foreground">
-        <h2 className="mb-8 text-2xl font-bold">Welcome to Flow Modeler</h2>
-        <div className="flex gap-5">
-            <Button
-                onClick={onCreate}
-                size="lg"
-            >
-                Create New File
-            </Button>
-            <Button
-                onClick={onLoad}
-                variant="outline"
-                size="lg"
-            >
-                Load Existing File
-            </Button>
+    <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex flex-col justify-center items-center z-50 text-gray-800">
+        <div className="bg-white/80 backdrop-blur-md p-10 rounded-2xl shadow-xl border border-white/50 text-center max-w-md w-full">
+            <div className="mb-6 flex justify-center">
+                <div className="p-4 bg-blue-50 rounded-full text-blue-600">
+                    <MessageSquare size={48} />
+                </div>
+            </div>
+            <h2 className="mb-3 text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Project Bot Admin</h2>
+            <p className="text-gray-500 mb-8">Create or edit your conversation flows visually.</p>
+
+            <div className="flex flex-col gap-3">
+                <Button
+                    onClick={onCreate}
+                    size="lg"
+                    className="w-full justify-center gap-2 h-12 text-base shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all hover:-translate-y-0.5"
+                >
+                    <FilePlus size={20} />
+                    Create New File
+                </Button>
+                <Button
+                    onClick={onLoad}
+                    variant="outline"
+                    size="lg"
+                    className="w-full justify-center gap-2 h-12 text-base bg-white/50 border-gray-200 hover:bg-gray-50/80 transition-all hover:-translate-y-0.5"
+                >
+                    <FolderOpen size={20} />
+                    Load Existing File
+                </Button>
+            </div>
         </div>
     </div>
 );
@@ -787,296 +816,135 @@ const FlowModelerContent = () => {
                     <HelperLines />
                     <Controls />
                     <MiniMap pannable zoomable />
-                    <Panel position="top-right" className="bg-card p-3 rounded-lg shadow-md min-w-[200px] max-h-[90vh] overflow-y-auto border border-border">
-                        <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', color: '#1f2937' }}>
-                            Drag to Add Nodes
+                    <Panel position="top-left" className="m-0 p-0 flex gap-2" style={{ top: '16px', left: '16px' }}>
+                        <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-2 flex items-center gap-2">
+                            <span className="font-semibold px-2 text-sm text-gray-700">Project Bot Admin</span>
+                            <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                            <button onClick={handleCreateNew} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="New File">
+                                <FilePlus size={18} />
+                            </button>
+                            <button onClick={handleLoad} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="Open File">
+                                <FolderOpen size={18} />
+                            </button>
+                            <button onClick={handleSave} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="Save">
+                                <Save size={18} />
+                            </button>
+                            <button onClick={handleSaveAs} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="Save As">
+                                <SaveAll size={18} />
+                            </button>
+                            <button onClick={handleExportVectorPDF} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="Export PDF">
+                                <Download size={18} />
+                            </button>
+                            <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                            <button onClick={() => undo(nodes, edges, setNodes, setEdges)} disabled={!canUndo} className={`p-1.5 rounded-md transition-colors ${canUndo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`} title="Undo">
+                                <Undo2 size={18} />
+                            </button>
+                            <button onClick={() => redo(nodes, edges, setNodes, setEdges)} disabled={!canRedo} className={`p-1.5 rounded-md transition-colors ${canRedo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`} title="Redo">
+                                <Redo2 size={18} />
+                            </button>
                         </div>
+                    </Panel>
 
-                        <div
-                            onDragStart={(event) => onDragStart(event, 'questionNode')}
-                            draggable
-                            style={{
-                                padding: '8px',
-                                marginBottom: '6px',
-                                background: '#667eea',
-                                color: 'white',
-                                borderRadius: '4px',
-                                cursor: 'grab',
-                                fontSize: '11px',
-                                fontWeight: '500',
-                                textAlign: 'center'
-                            }}
-                        >
-                            ➕ Question
-                        </div>
-                        <div
-                            onDragStart={(event) => onDragStart(event, 'optionNode')}
-                            draggable
-                            style={{
-                                padding: '8px',
-                                marginBottom: '6px',
-                                background: '#fef3c7',
-                                color: '#92400e',
-                                border: '1px solid #d97706',
-                                borderRadius: '4px',
-                                cursor: 'grab',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                textAlign: 'center'
-                            }}
-                        >
-                            ◇ Option
-                        </div>
-                        <div
-                            onDragStart={(event) => onDragStart(event, 'documentNode')}
-                            draggable
-                            style={{
-                                padding: '8px',
-                                marginBottom: '10px',
-                                background: '#2563eb',
-                                color: 'white',
-                                borderRadius: '4px',
-                                cursor: 'grab',
-                                fontSize: '11px',
-                                fontWeight: '500',
-                                textAlign: 'center'
-                            }}
-                        >
-                            ➕ Document
-                        </div>
-                        <div
-                            onDragStart={(event) => onDragStart(event, 'endNode')}
-                            draggable
-                            style={{
-                                padding: '8px',
-                                marginBottom: '10px',
-                                background: '#fee2e2',
-                                color: '#991b1b',
-                                border: '1px solid #dc2626',
-                                borderRadius: '4px',
-                                cursor: 'grab',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                textAlign: 'center'
-                            }}
-                        >
-                            🛑 End Event
-                        </div>
-
-                        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px', marginBottom: '10px' }}>
-                            <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
-                                Edge Visibility
+                    <Panel position="top-left" className="m-0 p-0" style={{ top: '90px', left: '16px' }}>
+                        <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-1.5 flex flex-col gap-2 pointer-events-auto">
+                            <div className="text-[10px] font-bold text-gray-400 text-center uppercase tracking-wider mb-1">Nodes</div>
+                            <div
+                                onDragStart={(event) => onDragStart(event, 'questionNode')}
+                                draggable
+                                className="w-10 h-10 flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 rounded-md cursor-grab active:cursor-grabbing text-gray-600 transition-colors"
+                                title="Question Node"
+                            >
+                                <MessageSquare size={20} />
                             </div>
-                            <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '4px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={edgeVisibility.qToO}
-                                    onChange={(e) => setEdgeVisibility(prev => ({ ...prev, qToO: e.target.checked }))}
-                                    style={{ marginRight: '6px' }}
-                                />
-                                Questions → Options
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '4px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={edgeVisibility.oToQ}
-                                    onChange={(e) => setEdgeVisibility(prev => ({ ...prev, oToQ: e.target.checked }))}
-                                    style={{ marginRight: '6px' }}
-                                />
-                                Options → Questions
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '8px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={edgeVisibility.doc}
-                                    onChange={(e) => setEdgeVisibility(prev => ({ ...prev, doc: e.target.checked }))}
-                                    style={{ marginRight: '6px' }}
-                                />
-                                Documents
-                            </label>
+                            <div
+                                onDragStart={(event) => onDragStart(event, 'optionNode')}
+                                draggable
+                                className="w-10 h-10 flex items-center justify-center hover:bg-green-50 hover:text-green-600 rounded-md cursor-grab active:cursor-grabbing text-gray-600 transition-colors"
+                                title="Option Node"
+                            >
+                                <List size={20} />
+                            </div>
+                            <div
+                                onDragStart={(event) => onDragStart(event, 'documentNode')}
+                                draggable
+                                className="w-10 h-10 flex items-center justify-center hover:bg-orange-50 hover:text-orange-600 rounded-md cursor-grab active:cursor-grabbing text-gray-600 transition-colors"
+                                title="Document Node"
+                            >
+                                <FileText size={20} />
+                            </div>
+                            <div
+                                onDragStart={(event) => onDragStart(event, 'endNode')}
+                                draggable
+                                className="w-10 h-10 flex items-center justify-center hover:bg-red-50 hover:text-red-600 rounded-md cursor-grab active:cursor-grabbing text-gray-600 transition-colors"
+                                title="End Node"
+                            >
+                                <StopCircle size={20} />
+                            </div>
                         </div>
+                    </Panel>
 
-                        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px' }}>
-                            <button
-                                onClick={handleSave}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginBottom: '8px',
-                                    background: '#10b981',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                {fileHandle ? '💾 Save' : '💾 Save XML'}
-                            </button>
-                            <button
-                                onClick={handleCreateNew}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginBottom: '8px',
-                                    background: '#3b82f6',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                📄 New File
-                            </button>
-                            <button
-                                onClick={handleLoad}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginBottom: '8px',
-                                    background: '#8b5cf6',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                📂 Open File
-                            </button>
-                            <button
-                                onClick={handleSaveAs}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginBottom: '8px',
-                                    background: '#059669',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                💾 Save As...
-                            </button>
-                            <button
-                                onClick={handleExportVectorPDF}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginBottom: '8px',
-                                    background: '#ef4444',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                📄 Export PDF
-                            </button>
-                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <Panel position="bottom-center" className="m-0 mb-8">
+                        <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-full px-4 py-2 flex items-center gap-4">
+                            <div className="flex gap-1">
                                 <button
                                     onClick={() => undo(nodes, edges, setNodes, setEdges)}
                                     disabled={!canUndo}
-                                    style={{
-                                        flex: 1,
-                                        padding: '6px',
-                                        background: canUndo ? '#3b82f6' : '#9ca3af',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: canUndo ? 'pointer' : 'not-allowed',
-                                        fontSize: '11px',
-                                        fontWeight: '500'
-                                    }}
+                                    className={`p-1.5 rounded-full transition-colors ${canUndo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
+                                    title="Undo"
                                 >
-                                    ↩️ Undo
+                                    <Undo2 size={18} />
                                 </button>
                                 <button
                                     onClick={() => redo(nodes, edges, setNodes, setEdges)}
                                     disabled={!canRedo}
-                                    style={{
-                                        flex: 1,
-                                        padding: '6px',
-                                        background: canRedo ? '#3b82f6' : '#9ca3af',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: canRedo ? 'pointer' : 'not-allowed',
-                                        fontSize: '11px',
-                                        fontWeight: '500'
-                                    }}
+                                    className={`p-1.5 rounded-full transition-colors ${canRedo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
+                                    title="Redo"
                                 >
-                                    ↪️ Redo
+                                    <Redo2 size={18} />
                                 </button>
                             </div>
-
+                            <div className="w-px h-5 bg-gray-300"></div>
                             <button
                                 onClick={toggleGlobalAnimation}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    marginBottom: '8px',
-                                    background: globalAnimate ? '#10b981' : '#6b7280',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${globalAnimate ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'hover:bg-gray-100 text-gray-700'}`}
                             >
-                                {globalAnimate ? '⏸️ Pause Flow' : '▶️ Show Flow'}
+                                {globalAnimate ? <Pause size={16} /> : <Play size={16} />}
+                                <span>{globalAnimate ? 'Running' : 'Run Flow'}</span>
                             </button>
-
-                            {selectedNode && (
-                                <button
-                                    onClick={handleDeleteNode}
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        marginBottom: '4px',
-                                        background: '#ef4444',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '11px',
-                                        fontWeight: '500'
-                                    }}
-                                >
-                                    🗑️ Delete Node
-                                </button>
-                            )}
-
-                            {selectedEdge && (
-                                <button
-                                    onClick={handleDeleteEdge}
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        background: '#ef4444',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '11px',
-                                        fontWeight: '500'
-                                    }}
-                                >
-                                    🗑️ Delete Edge
-                                </button>
-                            )}
                         </div>
                     </Panel>
+
+                    <Panel position="top-right" className="top-20 right-4">
+                        {(selectedNode || selectedEdge || selectedWaypoint) && (
+                            <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-2 flex flex-col gap-2 animate-in fade-in slide-in-from-right-4 duration-200 min-w-[180px]">
+                                <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 px-1">Selected</div>
+                                {selectedNode && (
+                                    <button
+                                        onClick={handleDeleteNode}
+                                        className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
+                                    >
+                                        <Trash2 size={16} />
+                                        <span>Delete Node</span>
+                                    </button>
+                                )}
+                                {selectedEdge && (
+                                    <button
+                                        onClick={handleDeleteEdge}
+                                        className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
+                                    >
+                                        <Trash2 size={16} />
+                                        <span>Delete Edge</span>
+                                    </button>
+                                )}
+                                {selectedWaypoint && (
+                                    <div className="text-xs text-center text-gray-500 py-1">
+                                        Waypoint Selected <br /> (Press Del to remove)
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </Panel>
+
                 </ReactFlow>
             )}
         </div >
