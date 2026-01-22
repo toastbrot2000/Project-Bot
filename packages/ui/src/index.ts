@@ -8,3 +8,5 @@ export * from './components/Footer';
 export * from './components/BaseLayout';
 export * from './components/Toast';
 export * from './components/FunLoader';
+export * from './components/Logo';
+

@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { BaseLayout, Navbar, Footer, ToastProvider, FunLoader } from '@project-bot/ui';
-// import { ReactComponent as Logo } from '@project-bot/ui/src/assets/logo.svg'; 
+import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom';
+import { BaseLayout, Navbar, Footer, ToastProvider, FunLoader, Logo, Button } from '@project-bot/ui';
 import './index.css';
 import Landing from './pages/Landing';
 
@@ -22,8 +21,22 @@ const AppNavbar = () => {
 
   return (
     <Navbar
-      logo={<span className="text-xl font-bold tracking-tight text-primary">Project Bot</span>}
+      logo={
+        <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90">
+          <Logo className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+          <span className="text-xl font-bold tracking-tight text-foreground transition-colors hover:text-primary">
+            Project Bot
+          </span>
+        </Link>
+      }
       links={links}
+      userMenu={
+        <div className="flex items-center gap-4">
+          <Link to="/app">
+            <Button>Launch App</Button>
+          </Link>
+        </div>
+      }
     />
   );
 };
