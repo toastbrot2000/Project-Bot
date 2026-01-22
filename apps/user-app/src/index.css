@@ -23,7 +23,8 @@ body {
   /* FIX: Center the wrapper on wide screens */
   gap: 4px;
   /* Reserve space for footer (approx 60-80px) */
-  height: calc(100vh - 80px);
+  height: calc(100dvh - 80px);
+  /* dvh accounts for mobile browser toolbars */
   min-height: 0;
   padding: 20px;
   box-sizing: border-box;
@@ -882,7 +883,7 @@ body {
   }
 
   #chat-container {
-    height: calc(100vh - 10px);
+    height: calc(100dvh - 10px);
     padding: 12px;
   }
 }

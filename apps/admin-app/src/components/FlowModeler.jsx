@@ -777,7 +777,7 @@ const FlowModelerContent = () => {
     }, [nodes]);
 
     return (
-        <div style={{ width: '100%', height: '100vh' }}>
+        <div style={{ width: '100%', height: '100dvh' }}>
             <input
                 type="file"
                 ref={fileInputRef}
