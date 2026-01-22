@@ -12,6 +12,7 @@ export default defineConfig({
         './Dashboard': './src/App.jsx',
       },
       shared: ['react', 'react-dom', 'reactflow'],
+      dts: false,
     }),
   ],
   build: {

@@ -12,6 +12,7 @@ export default defineConfig({
         './Main': './src/App.jsx',
       },
       shared: ['react', 'react-dom', 'reactflow'],
+      dts: false,
     }),
   ],
   build: {

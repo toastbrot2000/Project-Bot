@@ -8,10 +8,19 @@ export default defineConfig({
     federation({
       name: 'website_host',
       remotes: {
-        userApp: 'userApp@http://localhost:5001/remoteEntry.js',
-        adminApp: 'adminApp@http://localhost:5002/remoteEntry.js',
+        userApp: {
+          type: 'module',
+          name: 'userApp',
+          entry: 'http://localhost:5001/remoteEntry.js',
+        },
+        adminApp: {
+          type: 'module',
+          name: 'adminApp',
+          entry: 'http://localhost:5002/remoteEntry.js',
+        },
       },
       shared: ['react', 'react-dom', 'reactflow'],
+      dts: false,
     }),
   ],
   build: {
