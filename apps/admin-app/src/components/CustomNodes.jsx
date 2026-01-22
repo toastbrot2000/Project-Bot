@@ -48,8 +48,8 @@ export const QuestionNode = memo(({ data, id, selected }) => {
     return (
         <div
             className={`min-w-[250px] max-w-[300px] rounded-lg border-2 p-4 transition-all duration-200 relative ${selected
-                    ? 'bg-primary/10 border-primary ring-4 ring-primary/20'
-                    : 'bg-card border-border hover:border-primary/50'
+                ? 'bg-white border-blue-500 ring-4 ring-blue-500/20'
+                : 'bg-white border-slate-200 hover:border-blue-400/50'
                 }`}
         >
             <Handle type="target" position={Position.Top} className="!bg-primary" />
@@ -133,8 +133,8 @@ export const OptionNode = memo(({ data, id, selected }) => {
             {/* Diamond Shape Background */}
             <div
                 className={`absolute w-[70px] h-[70px] transform rotate-45 transition-all duration-200 ${selected
-                        ? 'bg-secondary border-2 border-secondary-foreground shadow-[0_0_0_4px_rgba(var(--secondary),0.3)]'
-                        : 'bg-secondary/50 border-2 border-secondary-foreground/50 hover:bg-secondary/80'
+                    ? 'bg-yellow-100 border-2 border-yellow-500 shadow-[0_0_0_4px_rgba(250,204,21,0.3)]'
+                    : 'bg-yellow-50 border-2 border-yellow-400 hover:bg-yellow-100'
                     }`}
             />
 
@@ -218,10 +218,10 @@ export const DocumentNode = memo(({ data, id, selected }) => {
 
     return (
         <div
-            className={`min-w-[220px] max-w-[280px] p-3 rounded border-2 transition-all duration-200 relative ${isMandatory ? 'bg-accent/20' : 'bg-muted/20'
+            className={`min-w-[220px] max-w-[280px] p-3 rounded border-2 transition-all duration-200 relative ${isMandatory ? 'bg-blue-100' : 'bg-blue-50'
                 } ${selected
-                    ? 'border-accent ring-4 ring-accent/20'
-                    : `border-${isMandatory ? 'accent' : 'muted-foreground/30'} hover:border-accent/70`
+                    ? 'border-blue-500 ring-4 ring-blue-500/20'
+                    : `border-${isMandatory ? 'blue-500' : 'blue-300'} hover:border-blue-400`
                 }`}
         >
             <Handle type="target" position={Position.Right} className="!bg-accent-foreground" />
@@ -321,8 +321,8 @@ export const EndNode = memo(({ data, id, selected }) => {
     return (
         <div
             className={`w-[60px] h-[60px] rounded-full flex items-center justify-center relative transition-all duration-200 ${selected
-                    ? 'bg-destructive/20 border-2 border-destructive shadow-[0_0_0_4px_rgba(var(--destructive),0.3)]'
-                    : 'bg-destructive/10 border-2 border-destructive/80'
+                ? 'bg-red-100 border-2 border-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.3)]'
+                : 'bg-red-50 border-2 border-red-400'
                 }`}
         >
             <Handle type="target" position={Position.Top} className="!bg-destructive" />
