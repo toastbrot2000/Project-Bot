@@ -1,4 +1,5 @@
 import React from 'react';
+import './index.css';
 import FlowModeler from './components/FlowModeler';
 import './App.css';
 

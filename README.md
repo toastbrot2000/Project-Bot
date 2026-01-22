@@ -1,99 +1,85 @@
-# Project Bot
+# Project Bot Monorepo
 
-A conversational chatbot application built with React and Vite. This project allows users to interact with a bot whose conversation flow is defined via XML configuration files. It also includes an Admin Panel for visualizing and managing the conversation flow.
+Welcome to **Project Bot**, a modular micro-frontend platform designed to orchestrate complex assessment workflows and visual flow modeling.
 
-## 🚀 Features
+## 🚀 Overview
 
-- **Interactive Chat Interface**: A clean, responsive UI for user-bot interaction.
-- **Data-Driven Flow**: Conversation logic, questions, and answers are defined in `public/questions.xml`.
-- **Admin Dashboard**: Visual graph representation of the conversation flow using [React Flow](https://reactflow.dev/).
-- **Content Management**: Integration with Strapi for managing rich text tooltips and additional content.
-- **Session Persistence**: Saves user progress locally so they can resume conversations.
+Project Bot utilizes a modern **Micro-Frontend Architecture** powered by **Vite Module Federation**. This allows for independent development and deployment of the different parts of the application while maintaining a cohesive user experience.
+
+### Architecture
+The project is organized as a Monorepo using `pnpm workspaces`.
+
+- **Host Application (`apps/website-host`)**: The "Shell" that loads other applications. It handles routing, layout, and cross-cutting concerns (authentication, theming).
+- **User Application (`apps/user-app`)**: The client-facing assessment tool. It features a rich chat interface for guided questions and answers.
+- **Admin Application (`apps/admin-app`)**: The administrative dashboard. It includes a powerful visual Flow Modeler (based on React Flow) to design the assessment logic.
+- **Shared Packages (`packages/*`)**: Reusable logic and UI components shared across applications.
+
+## 🛠️ Tech Stack
+
+- **Framework**: React 18+
+- **Build Tool**: Vite 6+
+- **Module Federation**: `@module-federation/vite`
+- **Language**: TypeScript / JavaScript
+- **Styling**: Tailwind CSS (Host), CSS Modules / Global CSS (Remotes)
+- **State Management**: React Context / Hooks
+- **Visual Modeling**: React Flow
+
+## ⚡ Getting Started
+
+### Prerequisites
+- **Node.js**: v18 or higher (v20+ recommended)
+- **pnpm**: v9+ (Install via `npm install -g pnpm`)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd project-bot
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+   This command installs dependencies for the root workspace and all applications/packages.
+
+### Development
+
+To start the entire platform (Host + Remotes) in parallel:
+
+```bash
+pnpm dev
+```
+
+The applications will inherit the following ports:
+- **Host**: [http://localhost:5173](http://localhost:5173)
+- **User App**: [http://localhost:5001](http://localhost:5001) (Remote Entry)
+- **Admin App**: [http://localhost:5002](http://localhost:5002) (Remote Entry)
+
+Navigate to **[http://localhost:5173](http://localhost:5173)** to see the full application.
 
 ## 📂 Project Structure
 
-This repository contains two main applications:
-
-1.  **Chat Client** (Root directory): The main customer-facing application.
-2.  **Admin Panel** (`/admin-panel`): A tool for administrators to visualize the question flow.
-
-## 🛠️ Getting Started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v16 or higher recommended)
-- [NPM](https://www.npmjs.com/)
-
-### Setting up the Chat Client
-
-1.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-2.  **Start the development server**:
-    ```bash
-    npm run dev
-    ```
-    The app will be available at `http://localhost:5173`.
-
-### Setting up the Admin Panel
-
-The admin panel is a separate React application nested in the `admin-panel` directory.
-
-1.  **Navigate to the admin folder**:
-    ```bash
-    cd admin-panel
-    ```
-
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Start the admin server**:
-    ```bash
-    npm run dev
-    ```
-    The admin panel usually starts on `http://localhost:5174` (if 5173 is busy).
-
-## ⚙️ Configuration
-
-### Conversation Flow (`questions.xml`)
-
-The core logic of the chat is defined in XML format.
-- **Location**: `public/questions.xml` (for the Client) and `admin-panel/public/questions.xml` (for the Admin Panel).
-- **Structure**: Defines `<question>` nodes with unique IDs, text, options, and next-question logic.
-
-### Environment Variables
-
-If your setup requires connection to a backend (like Strapi), ensure you have the appropriate `.env` file configured. See `.env.example` (if available) for reference.
-
-## 📦 Building for Production
-
-To build both applications for production:
-
-**Client:**
-```bash
-npm run build
 ```
-
-**Admin Panel:**
-```bash
-cd admin-panel
-npm run build
+project-bot/
+├── apps/
+│   ├── website-host/      # Main Shell App (The entry point)
+│   ├── user-app/          # User Assessment Chat Flow
+│   └── admin-app/         # Admin Flow Modeler
+├── packages/
+│   ├── shared-flow/       # Shared logic for React Flow
+│   └── ui-theme/          # Shared Design Tokens
+├── package.json           # Root configuration
+└── pnpm-workspace.yaml    # Workspace definition
 ```
-
-The output will be in the `dist` folder of each respective project.
 
 ## 🤝 Contributing
 
-1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feature/amazing-feature`).
-3.  Commit your changes (`git commit -m 'Add some amazing feature'`).
-4.  Push to the branch (`git push origin feature/amazing-feature`).
-5.  Open a Pull Request.
+1. **New Features**: Create a feature branch from `main`.
+2. **Changes**: Make changes in the specific app or package.
+3. **Testing**: Verify changes by running `pnpm dev` and checking the Host.
+4. **Pull Request**: Submit a PR describing your changes.
 
 ## 📄 License
-
-[MIT](LICENSE)
+[Proprietary / MIT - Specify License Here]

@@ -12,56 +12,6 @@ export function ResultsPage({ answers, onReset, onBack }) {
         const optional = [];
 
         dependencies.forEach(doc => {
-            // Check if ANY condition matches
-            // Logic: A document is needed if ANY of its conditions is met?
-            // Or if ALL?
-            // Let's verify standard behavior. Usually it's "If Q1=A OR Q2=B".
-            // But for things like "Student Visa", it might be complex.
-            // Looking at XML: 
-            // Uni Letter: Q1=1 AND Q2=1? (Studying AND Accepted)
-            // No, XML structure:
-            // <conditions> <condition ... /> <condition ... /> </conditions>
-            // Usually implied OR unless specified.
-            // Let's assume OR for now, or check typical simple XML logic.
-            // Actually, for "University Acceptance Letter":
-            // conditions: Q1=1, Q2=1. 
-            // If it means OR, then "Working" people (Q1=2) who answered Q2=1 (Yes, confirmed offer) would get it?
-            // If Q1=2 (Working), Q2=1 (Yes, confirmed offer) -> They need Employment Contract.
-            // If Q1=1 (Studying), Q2=1 -> Uni Letter.
-            // The file lists: 
-            // Uni Letter: Q1=1, Q2=1. 
-            // If it's OR, then anyone with Q2=1 gets Uni Letter? That's wrong. Working people don't need Uni letter.
-            // So it must be AND?
-            // Wait, multiple conditions in list usually implies AND in this specific schema?
-            // "conditions" -> list of "condition".
-            // Let's look at "Proof of Financial Means":
-            // Q1=1 (Studying), Q1=2 (Working), Q1=4 (Exploring).
-            // If AND: You must be Studying AND Working AND Exploring. Impossible.
-            // So for Financial Means it MUST be OR.
-
-            // Contradiction?
-            // Uni Letter: Q1=1 (Studying) ... Q2=1 (Confirmed). 
-            // Wait, Q2 is shared? 
-            // Q1=1 -> Q2. Q1=2 -> Q2.
-            // So if I am Studying (1) AND Confirmed (2->1).
-
-            // Let's try to deduce from context.
-            // Doc: "University Acceptance Letter"
-            // Conditions: Q1=option1, Q2=option1.
-            // Interpret as: REQUIRED IF (Q1 answered 1) AND (Q2 answered 1).
-
-            // Doc: "Proof of Financial Means"
-            // Conditions: Q1=1, Q1=2, Q1=4.
-            // All refer to Q1.
-            // REQUIRED IF (Q1 answered 1) OR (Q1 answered 2) OR (Q1 answered 4).
-
-            // Heuristic:
-            // Group conditions by Question ID?
-            // If multiple conditions refer to DIFFERENT questions, it's AND.
-            // If multiple conditions refer to SAME question, it's OR.
-            // Ex: (Q1=1 OR Q1=2 OR Q1=4) AND (Q2=1 if present).
-
-            // Let's implement this heuristic.
 
             const conditions = doc.conditions.condition || [];
             if (conditions.length === 0) return; // No conditions, maybe always default? or never?
