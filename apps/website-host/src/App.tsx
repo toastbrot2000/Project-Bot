@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { BaseLayout, Navbar, Footer, ToastProvider } from '@project-bot/ui';
+import { BaseLayout, Navbar, Footer, ToastProvider, FunLoader } from '@project-bot/ui';
 // import { ReactComponent as Logo } from '@project-bot/ui/src/assets/logo.svg'; 
 import './index.css';
 import Landing from './pages/Landing';
@@ -35,11 +35,7 @@ function App() {
         <BaseLayout>
           <AppNavbar />
           <div className="flex-1">
-            <Suspense fallback={
-              <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-              </div>
-            }>
+            <Suspense fallback={<FunLoader />}>
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/app/*" element={<UserApp />} />

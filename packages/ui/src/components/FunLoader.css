@@ -1,0 +1,225 @@
+/* FunLoader.css */
+.fun-loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    gap: 2rem;
+    font-family: sans-serif;
+    background-color: transparent;
+    /* Or white if needed */
+}
+
+/* Bot Container */
+.bot-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+/* Shadow */
+.bot-shadow {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 20px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    filter: blur(4px);
+    animation: shadowPulse 1s infinite alternate;
+}
+
+/* Body */
+.bot-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6, #4f46e5);
+    /* Blue to Indigo */
+    border-radius: 24px;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: botBounce 1s infinite alternate cubic-bezier(0.5, 0.05, 0.1, 0.3);
+    z-index: 2;
+}
+
+/* Face */
+.bot-face {
+    width: 80px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Eyes */
+.bot-eye {
+    width: 12px;
+    height: 12px;
+    background-color: #1e3a8a;
+    /* Indigo 900 */
+    border-radius: 50%;
+    animation: eyeBlink 3s infinite;
+}
+
+.bot-eye:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+/* Mouth */
+.bot-mouth {
+    position: absolute;
+    bottom: 8px;
+    width: 20px;
+    height: 4px;
+    background-color: rgba(30, 58, 138, 0.5);
+    border-radius: 2px;
+}
+
+/* Antenna */
+.bot-antenna-stem {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 20px;
+    background-color: #4f46e5;
+    z-index: 1;
+}
+
+.bot-antenna-bulb {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    background-color: #ef4444;
+    /* Red 500 */
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    animation: antennaGlow 1.5s infinite;
+    z-index: 1;
+}
+
+/* Text */
+.fun-loader-text {
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fun-loader-text p {
+    font-size: 1.5rem;
+    /* Large text */
+    font-weight: 600;
+    color: #4b5563;
+    /* Gray 600 */
+    margin: 0;
+    animation: textFade 0.5s ease-in-out;
+}
+
+/* Loading Bar */
+.fun-loading-bar-container {
+    width: 250px;
+    height: 8px;
+    background-color: #f3f4f6;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.fun-loading-bar-fill {
+    height: 100%;
+    width: 100%;
+    background-color: #3b82f6;
+    border-radius: 9999px;
+    animation: loadingBarShimmy 1.5s infinite linear;
+    /* Simple indeterminate slide */
+    transform-origin: left;
+}
+
+
+
+/* Keyframes */
+@keyframes botBounce {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes shadowPulse {
+    0% {
+        transform: translateX(-50%) scale(1);
+        opacity: 0.1;
+    }
+
+    100% {
+        transform: translateX(-50%) scale(0.8);
+        opacity: 0.05;
+    }
+}
+
+@keyframes eyeBlink {
+
+    0%,
+    90%,
+    100% {
+        transform: scaleY(1);
+    }
+
+    95% {
+        transform: scaleY(0.1);
+    }
+}
+
+@keyframes antennaGlow {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: translateX(-50%) scale(0.9);
+    }
+}
+
+@keyframes textFade {
+    0% {
+        opacity: 0.5;
+        transform: translateY(5px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes loadingBarShimmy {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}

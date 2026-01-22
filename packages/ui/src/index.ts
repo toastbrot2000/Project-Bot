@@ -7,3 +7,4 @@ export * from './components/Navbar';
 export * from './components/Footer';
 export * from './components/BaseLayout';
 export * from './components/Toast';
+export * from './components/FunLoader';
