@@ -756,292 +756,220 @@ const FlowModelerContent = () => {
                 style={{ display: 'none' }}
             />
             {!isProjectLoaded && <StartOverlay onCreate={handleCreateNew} onLoad={handleLoad} />}
-            <ReactFlow
-                key={flowKey}
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onReconnect={onReconnect}
-                onNodeDragStart={onNodeDragStart}
-                onNodeDragStop={onNodeDragStop}
-                onNodeDrag={onNodeDrag}
-                nodeTypes={nodeTypes}
-                edgeTypes={edgeTypes}
-                fitView
-                deleteKeyCode={null}
-                onNodeClick={onNodeClick}
-                onEdgeClick={onEdgeClick}
-                onPaneClick={onPaneClick}
-                onDragOver={onDragOver}
-                onDrop={onDrop}
-                selectionOnDrag={true}
-                selectionMode="partial"
-                panOnDrag={[1]}
-                panOnScroll={true}
-            >
-                <Background gap={20} size={1} color="hsl(var(--border))" />
-                <HelperLines />
-                <Controls />
-                <MiniMap pannable zoomable />
-                <Panel position="top-right" className="bg-card p-3 rounded-lg shadow-md min-w-[200px] max-h-[90vh] overflow-y-auto border border-border">
-                    <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', color: '#1f2937' }}>
-                        Drag to Add Nodes
-                    </div>
-
-                    <div
-                        onDragStart={(event) => onDragStart(event, 'questionNode')}
-                        draggable
-                        style={{
-                            padding: '8px',
-                            marginBottom: '6px',
-                            background: '#667eea',
-                            color: 'white',
-                            borderRadius: '4px',
-                            cursor: 'grab',
-                            fontSize: '11px',
-                            fontWeight: '500',
-                            textAlign: 'center'
-                        }}
-                    >
-                        ➕ Question
-                    </div>
-                    <div
-                        onDragStart={(event) => onDragStart(event, 'optionNode')}
-                        draggable
-                        style={{
-                            padding: '8px',
-                            marginBottom: '6px',
-                            background: '#fef3c7',
-                            color: '#92400e',
-                            border: '1px solid #d97706',
-                            borderRadius: '4px',
-                            cursor: 'grab',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            textAlign: 'center'
-                        }}
-                    >
-                        ◇ Option
-                    </div>
-                    <div
-                        onDragStart={(event) => onDragStart(event, 'documentNode')}
-                        draggable
-                        style={{
-                            padding: '8px',
-                            marginBottom: '10px',
-                            background: '#2563eb',
-                            color: 'white',
-                            borderRadius: '4px',
-                            cursor: 'grab',
-                            fontSize: '11px',
-                            fontWeight: '500',
-                            textAlign: 'center'
-                        }}
-                    >
-                        ➕ Document
-                    </div>
-                    <div
-                        onDragStart={(event) => onDragStart(event, 'endNode')}
-                        draggable
-                        style={{
-                            padding: '8px',
-                            marginBottom: '10px',
-                            background: '#fee2e2',
-                            color: '#991b1b',
-                            border: '1px solid #dc2626',
-                            borderRadius: '4px',
-                            cursor: 'grab',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            textAlign: 'center'
-                        }}
-                    >
-                        🛑 End Event
-                    </div>
-
-                    <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px', marginBottom: '10px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
-                            Edge Visibility
-                        </div>
-                        <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '4px', cursor: 'pointer' }}>
-                            <input
-                                type="checkbox"
-                                checked={edgeVisibility.qToO}
-                                onChange={(e) => setEdgeVisibility(prev => ({ ...prev, qToO: e.target.checked }))}
-                                style={{ marginRight: '6px' }}
-                            />
-                            Questions → Options
-                        </label>
-                        <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '4px', cursor: 'pointer' }}>
-                            <input
-                                type="checkbox"
-                                checked={edgeVisibility.oToQ}
-                                onChange={(e) => setEdgeVisibility(prev => ({ ...prev, oToQ: e.target.checked }))}
-                                style={{ marginRight: '6px' }}
-                            />
-                            Options → Questions
-                        </label>
-                        <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '8px', cursor: 'pointer' }}>
-                            <input
-                                type="checkbox"
-                                checked={edgeVisibility.doc}
-                                onChange={(e) => setEdgeVisibility(prev => ({ ...prev, doc: e.target.checked }))}
-                                style={{ marginRight: '6px' }}
-                            />
-                            Documents
-                        </label>
-                    </div>
-
-                    <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px' }}>
-                        <button
-                            onClick={handleSave}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginBottom: '8px',
-                                background: '#10b981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            {fileHandle ? '💾 Save' : '💾 Save XML'}
-                        </button>
-                        <button
-                            onClick={handleCreateNew}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginBottom: '8px',
-                                background: '#3b82f6',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            📄 New File
-                        </button>
-                        <button
-                            onClick={handleLoad}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginBottom: '8px',
-                                background: '#8b5cf6',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            📂 Open File
-                        </button>
-                        <button
-                            onClick={handleSaveAs}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginBottom: '8px',
-                                background: '#059669',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            💾 Save As...
-                        </button>
-                        <button
-                            onClick={handleExportVectorPDF}
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginBottom: '8px',
-                                background: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            📄 Export PDF
-                        </button>
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                            <button
-                                onClick={() => undo(nodes, edges, setNodes, setEdges)}
-                                disabled={!canUndo}
-                                style={{
-                                    flex: 1,
-                                    padding: '6px',
-                                    background: canUndo ? '#3b82f6' : '#9ca3af',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: canUndo ? 'pointer' : 'not-allowed',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                ↩️ Undo
-                            </button>
-                            <button
-                                onClick={() => redo(nodes, edges, setNodes, setEdges)}
-                                disabled={!canRedo}
-                                style={{
-                                    flex: 1,
-                                    padding: '6px',
-                                    background: canRedo ? '#3b82f6' : '#9ca3af',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: canRedo ? 'pointer' : 'not-allowed',
-                                    fontSize: '11px',
-                                    fontWeight: '500'
-                                }}
-                            >
-                                ↪️ Redo
-                            </button>
+            {isProjectLoaded && (
+                <ReactFlow
+                    key={flowKey}
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onReconnect={onReconnect}
+                    onNodeDragStart={onNodeDragStart}
+                    onNodeDragStop={onNodeDragStop}
+                    onNodeDrag={onNodeDrag}
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
+                    fitView
+                    deleteKeyCode={null}
+                    onNodeClick={onNodeClick}
+                    onEdgeClick={onEdgeClick}
+                    onPaneClick={onPaneClick}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop}
+                    selectionOnDrag={true}
+                    selectionMode="partial"
+                    panOnDrag={[1]}
+                    panOnScroll={true}
+                >
+                    <Background gap={20} size={1} color="hsl(var(--border))" />
+                    <HelperLines />
+                    <Controls />
+                    <MiniMap pannable zoomable />
+                    <Panel position="top-right" className="bg-card p-3 rounded-lg shadow-md min-w-[200px] max-h-[90vh] overflow-y-auto border border-border">
+                        <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', color: '#1f2937' }}>
+                            Drag to Add Nodes
                         </div>
 
-                        <button
-                            onClick={toggleGlobalAnimation}
+                        <div
+                            onDragStart={(event) => onDragStart(event, 'questionNode')}
+                            draggable
                             style={{
-                                width: '100%',
                                 padding: '8px',
-                                marginBottom: '8px',
-                                background: globalAnimate ? '#10b981' : '#6b7280',
+                                marginBottom: '6px',
+                                background: '#667eea',
                                 color: 'white',
-                                border: 'none',
                                 borderRadius: '4px',
-                                cursor: 'pointer',
+                                cursor: 'grab',
                                 fontSize: '11px',
-                                fontWeight: '500'
+                                fontWeight: '500',
+                                textAlign: 'center'
                             }}
                         >
-                            {globalAnimate ? '⏸️ Pause Flow' : '▶️ Show Flow'}
-                        </button>
+                            ➕ Question
+                        </div>
+                        <div
+                            onDragStart={(event) => onDragStart(event, 'optionNode')}
+                            draggable
+                            style={{
+                                padding: '8px',
+                                marginBottom: '6px',
+                                background: '#fef3c7',
+                                color: '#92400e',
+                                border: '1px solid #d97706',
+                                borderRadius: '4px',
+                                cursor: 'grab',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                textAlign: 'center'
+                            }}
+                        >
+                            ◇ Option
+                        </div>
+                        <div
+                            onDragStart={(event) => onDragStart(event, 'documentNode')}
+                            draggable
+                            style={{
+                                padding: '8px',
+                                marginBottom: '10px',
+                                background: '#2563eb',
+                                color: 'white',
+                                borderRadius: '4px',
+                                cursor: 'grab',
+                                fontSize: '11px',
+                                fontWeight: '500',
+                                textAlign: 'center'
+                            }}
+                        >
+                            ➕ Document
+                        </div>
+                        <div
+                            onDragStart={(event) => onDragStart(event, 'endNode')}
+                            draggable
+                            style={{
+                                padding: '8px',
+                                marginBottom: '10px',
+                                background: '#fee2e2',
+                                color: '#991b1b',
+                                border: '1px solid #dc2626',
+                                borderRadius: '4px',
+                                cursor: 'grab',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                textAlign: 'center'
+                            }}
+                        >
+                            🛑 End Event
+                        </div>
 
-                        {selectedNode && (
+                        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px', marginBottom: '10px' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>
+                                Edge Visibility
+                            </div>
+                            <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '4px', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={edgeVisibility.qToO}
+                                    onChange={(e) => setEdgeVisibility(prev => ({ ...prev, qToO: e.target.checked }))}
+                                    style={{ marginRight: '6px' }}
+                                />
+                                Questions → Options
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '4px', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={edgeVisibility.oToQ}
+                                    onChange={(e) => setEdgeVisibility(prev => ({ ...prev, oToQ: e.target.checked }))}
+                                    style={{ marginRight: '6px' }}
+                                />
+                                Options → Questions
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', marginBottom: '8px', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={edgeVisibility.doc}
+                                    onChange={(e) => setEdgeVisibility(prev => ({ ...prev, doc: e.target.checked }))}
+                                    style={{ marginRight: '6px' }}
+                                />
+                                Documents
+                            </label>
+                        </div>
+
+                        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '10px' }}>
                             <button
-                                onClick={handleDeleteNode}
+                                onClick={handleSave}
                                 style={{
                                     width: '100%',
                                     padding: '8px',
-                                    marginBottom: '4px',
+                                    marginBottom: '8px',
+                                    background: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '11px',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                {fileHandle ? '💾 Save' : '💾 Save XML'}
+                            </button>
+                            <button
+                                onClick={handleCreateNew}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    marginBottom: '8px',
+                                    background: '#3b82f6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '11px',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                📄 New File
+                            </button>
+                            <button
+                                onClick={handleLoad}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    marginBottom: '8px',
+                                    background: '#8b5cf6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '11px',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                📂 Open File
+                            </button>
+                            <button
+                                onClick={handleSaveAs}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    marginBottom: '8px',
+                                    background: '#059669',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '11px',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                💾 Save As...
+                            </button>
+                            <button
+                                onClick={handleExportVectorPDF}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    marginBottom: '8px',
                                     background: '#ef4444',
                                     color: 'white',
                                     border: 'none',
@@ -1051,17 +979,52 @@ const FlowModelerContent = () => {
                                     fontWeight: '500'
                                 }}
                             >
-                                🗑️ Delete Node
+                                📄 Export PDF
                             </button>
-                        )}
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                <button
+                                    onClick={() => undo(nodes, edges, setNodes, setEdges)}
+                                    disabled={!canUndo}
+                                    style={{
+                                        flex: 1,
+                                        padding: '6px',
+                                        background: canUndo ? '#3b82f6' : '#9ca3af',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: canUndo ? 'pointer' : 'not-allowed',
+                                        fontSize: '11px',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    ↩️ Undo
+                                </button>
+                                <button
+                                    onClick={() => redo(nodes, edges, setNodes, setEdges)}
+                                    disabled={!canRedo}
+                                    style={{
+                                        flex: 1,
+                                        padding: '6px',
+                                        background: canRedo ? '#3b82f6' : '#9ca3af',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: canRedo ? 'pointer' : 'not-allowed',
+                                        fontSize: '11px',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    ↪️ Redo
+                                </button>
+                            </div>
 
-                        {selectedEdge && (
                             <button
-                                onClick={handleDeleteEdge}
+                                onClick={toggleGlobalAnimation}
                                 style={{
                                     width: '100%',
                                     padding: '8px',
-                                    background: '#ef4444',
+                                    marginBottom: '8px',
+                                    background: globalAnimate ? '#10b981' : '#6b7280',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '4px',
@@ -1070,12 +1033,51 @@ const FlowModelerContent = () => {
                                     fontWeight: '500'
                                 }}
                             >
-                                🗑️ Delete Edge
+                                {globalAnimate ? '⏸️ Pause Flow' : '▶️ Show Flow'}
                             </button>
-                        )}
-                    </div>
-                </Panel>
-            </ReactFlow>
+
+                            {selectedNode && (
+                                <button
+                                    onClick={handleDeleteNode}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        marginBottom: '4px',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '11px',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    🗑️ Delete Node
+                                </button>
+                            )}
+
+                            {selectedEdge && (
+                                <button
+                                    onClick={handleDeleteEdge}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '11px',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    🗑️ Delete Edge
+                                </button>
+                            )}
+                        </div>
+                    </Panel>
+                </ReactFlow>
+            )}
         </div >
     );
 };

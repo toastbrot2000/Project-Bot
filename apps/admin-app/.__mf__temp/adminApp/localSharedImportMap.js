@@ -13,6 +13,11 @@
           let pkg = await import("__mf__virtual/adminApp__prebuild__react_mf_2_dom__prebuild__.js");
             return pkg;
         }
+      ,
+        "reactflow": async () => {
+          let pkg = await import("__mf__virtual/adminApp__prebuild__reactflow__prebuild__.js");
+            return pkg;
+        }
       
     }
       const usedShared = {
@@ -41,7 +46,7 @@
               }
             },
             shareConfig: {
-              singleton: false,
+              singleton: true,
               requiredVersion: "^19.2.3",
               
             }
@@ -71,8 +76,38 @@
               }
             },
             shareConfig: {
-              singleton: false,
+              singleton: true,
               requiredVersion: "^19.2.3",
+              
+            }
+          }
+        ,
+          "reactflow": {
+            name: "reactflow",
+            version: "11.11.4",
+            scope: ["default"],
+            loaded: false,
+            from: "adminApp",
+            async get () {
+              if (false) {
+                throw new Error(`Shared module '${"reactflow"}' must be provided by host`);
+              }
+              usedShared["reactflow"].loaded = true
+              const {"reactflow": pkgDynamicImport} = importMap
+              const res = await pkgDynamicImport()
+              const exportModule = {...res}
+              // All npm packages pre-built by vite will be converted to esm
+              Object.defineProperty(exportModule, "__esModule", {
+                value: true,
+                enumerable: false
+              })
+              return function () {
+                return exportModule
+              }
+            },
+            shareConfig: {
+              singleton: true,
+              requiredVersion: "^11.11.4",
               
             }
           }
