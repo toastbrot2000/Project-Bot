@@ -51,22 +51,26 @@ export default defineConfig({
       command: 'pnpm --filter admin-app dev',
       url: 'http://localhost:5002',
       reuseExistingServer: !process.env.CI,
+      cwd: '../../',
     },
     {
       command: 'pnpm --filter user-app dev',
       url: 'http://localhost:5001',
       reuseExistingServer: !process.env.CI,
+      cwd: '../../',
     },
     {
       command: 'pnpm --filter website-host dev',
       url: 'http://localhost:5003',
       reuseExistingServer: !process.env.CI,
+      cwd: '../../',
     },
     {
       command: 'pnpm --filter backend develop',
       url: 'http://localhost:1337',
       reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
+      timeout: 180 * 1000,
+      cwd: '../../',
     }
   ],
 });
