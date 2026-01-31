@@ -6,10 +6,10 @@ export default defineConfig({
   plugins: [
     react(),
     federation({
-      name: 'adminApp',
+      name: 'logicModeller',
       filename: 'remoteEntry.js',
       exposes: {
-        './Dashboard': './src/App.jsx',
+        './LogicModeller': './src/App.jsx',
       },
       shared: {
         react: { singleton: true },

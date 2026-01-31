@@ -14,12 +14,12 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'admin-app',
+      name: 'logic-modeller',
       use: { 
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:5002',
       },
-      testMatch: 'admin-app/test/e2e/*.spec.ts',
+      testMatch: 'logic-modeller/test/e2e/*.spec.ts',
     },
     {
       name: 'user-app',
@@ -48,7 +48,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'pnpm --filter admin-app dev',
+      command: 'pnpm --filter logic-modeller dev',
       url: 'http://localhost:5002',
       reuseExistingServer: !process.env.CI,
       cwd: '../../',

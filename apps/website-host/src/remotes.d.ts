@@ -1,2 +1,2 @@
 declare module 'userApp/Main';
-declare module 'adminApp/Dashboard';
+declare module 'logicModeller/LogicModeller';
