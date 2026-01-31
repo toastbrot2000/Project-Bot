@@ -1,55 +1,77 @@
-# Testing Guidelines
+# Testing Infrastructure
 
-This document outlines the testing strategy and patterns for Project Bot.
+We use a unified testing strategy across our monorepo powered by **Vitest** (Unit/Integration) and **Playwright** (E2E).
 
-## Unit Testing (Vitest)
+## 🚀 Quick Start
 
-We use **Vitest** for unit testing logic in both `apps` and `packages`.
+- **Unit & Integration Tests**:
 
-### Patterns
+  ```bash
+  pnpm test
+  ```
 
-- **Location**: Place `.test.ts` or `.test.js` files next to the implementation.
-- **Mocking**: Use `vi.stubGlobal` for global mocks (e.g., `fetch`) and `vi.mock` for module-level mocks.
-- **Execution**: Run `pnpm test` from the root to execute all tests in the monorepo.
+  _(Runs recursively `pnpm -r test` in each app, excluding e2e folders)_
 
-### Example (Service Test)
+- **E2E Tests** (Playwright):
 
-```javascript
-import { describe, it, expect, vi } from "vitest";
-import { myService } from "./myService";
+  ```bash
+  pnpm test:e2e
+  ```
 
-describe("myService", () => {
-  it("should do something", async () => {
-    // ...
-  });
-});
-```
+  _(Runs Playwright using the configuration in `tests/e2e/`)_
 
-## E2E Testing (Playwright)
+- **Affected Packages Only**:
+  ```bash
+  pnpm test:affected
+  ```
+  _(Runs tests only for packages changed relative to `origin/main`)_
 
-We use **Playwright** for end-to-end smoke tests and critical flow verification.
+## 🏗️ Architecture
 
-### Patterns
+### 1. Root & App Configuration
 
-- **Location**: Tests are located in `apps/e2e/tests`.
-- **Base URL**: Configured in `apps/e2e/playwright.config.ts`.
-- **Execution**: Run `pnpm --filter e2e-tests test`.
+- **Root**:
 
-### Example (Smoke Test)
+  - `vitest.config.base.ts`: Shared Vitest configuration template.
+  - `tests/e2e/playwright.config.ts`: Central Playwright runner config.
+  - `package.json`: Configured to run `pnpm -r test`, ensuring each app runs tests in its own context.
 
-```typescript
-import { test, expect } from "@playwright/test";
+- **Apps** (`apps/<app>/vitest.config.ts`):
+  - Each app extends or duplicates necessary config from the base.
+  - **Crucially**: `react` and `react-dom` are aliased to local `node_modules` to prevent "Invalid Hook Call" and "Duplicate React" errors common in pnpm monorepos.
+  - **Exclusions**: Strict `exclude` patterns prevent Vitest from running Playwright `.spec.ts` files.
 
-test("smoke test", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByText("Welcome")).toBeVisible();
-});
-```
+### 2. File Structure
 
-## Integration Testing
+Each app (`apps/<app>`) has its own `test/` directory:
 
-Integration tests should be used for components that interact with external services (like Strapi) without mocking the entire network layer if possible, or by using dedicated test databases.
+- `test/unit/`: Pure logic tests (fast, no DOM).
+- `test/integration/`: Component tests (checking rendering, hooks).
+- `test/e2e/`: Playwright spec files (`.spec.ts`).
 
-## CI/CD Integration
+## 🛡️ Guidelines
 
-Tests are automatically executed on every push and pull request to the `main` branch via GitHub Actions. See [.github/workflows/ci.yml].
+### Selectors
+
+Always use `data-testid` attributes (e.g., `data-testid="app-root"`). Do not use brittle CSS selectors.
+
+### Mocking Strategy
+
+- **External APIs**: Mock side-effects (like `fetch` or `useChatFlow`).
+- **Module Federation**: For Integration tests, **mock** Remote Modules (e.g., `userApp/Main`) to avoid build-time resolution errors.
+- **Shared UI**: If you encounter React Context conflicts (e.g., `ToastProvider`), mock the shared UI component or alias React to the local package.
+
+### Contract Protection
+
+- Ensure shared constants and types from `packages/` are validated in consumer apps.
+- `tests/e2e/playwright.config.ts` serves as the centralized E2E contract runner.
+
+## 📝 Troubleshooting
+
+### "Invalid Hook Call" / Duplicate React
+
+If you see this error during tests, ensure the `vitest.config.ts` in the failing app has the `alias` for `react` pointing to `path.resolve(__dirname, 'node_modules/react')`. This forces Vitest to resolve the local React instance instead of hoisting it.
+
+### "Module Federation" Errors
+
+Integration tests in `website-host` intentionally **bypass** remote loading by mocking the imports. For real federation testing, use `pnpm test:e2e` against the running dev servers.

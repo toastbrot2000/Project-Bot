@@ -2,13 +2,16 @@
     "name": "project-bot-monorepo",
     "private": true,
     "scripts": {
-        "dev": "pnpm --filter \"./apps/*\" --parallel dev",
-        "build": "pnpm --filter \"./apps/*\" build",
-        "lint": "pnpm --filter \"./apps/*\" --filter \"./packages/*\" lint",
-        "test": "vitest run",
-        "audit": "pnpm audit --audit-level moderate",
-        "optimize-assets": "node tooling/optimize-images.js"
-    },
+    "dev": "pnpm --filter \"./apps/*\" --parallel dev",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "lint": "pnpm --filter \"./apps/*\" --filter \"./packages/*\" lint",
+    "test": "pnpm -r --filter \"./apps/*\" test",
+    "test:debug": "vitest run",
+    "test:affected": "pnpm -r --filter \"...[origin/main]\" test",
+    "test:e2e": "pnpm --filter e2e-tests e2e",
+    "audit": "pnpm audit --audit-level moderate",
+    "optimize-assets": "node tooling/optimize-images.js"
+},
     "devDependencies": {
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
@@ -19,6 +22,12 @@
         "vitest": "^4.0.18"
     },
     "pnpm": {
+        "onlyBuiltDependencies": [
+            "@swc/core",
+            "better-sqlite3",
+            "esbuild",
+            "sharp"
+        ],
         "overrides": {
             "qs": "^6.14.1",
             "tar": "^7.5.7",
