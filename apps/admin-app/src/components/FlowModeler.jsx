@@ -12,8 +12,7 @@ import ReactFlow, {
     useReactFlow,
     BezierEdge,
     MarkerType,
-    getNodesBounds,
-    getTransformForBounds
+    getNodesBounds
 } from 'reactflow';
 import { toSvg } from 'html-to-image';
 import 'reactflow/dist/style.css';
@@ -84,18 +83,27 @@ const StartOverlay = ({ onCreate, onLoad }) => (
     </div>
 );
 
+const getDistanceToSegment = (p, v, w) => {
+    const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
+    if (l2 === 0) return Math.sqrt(Math.pow(p.x - v.x, 2) + Math.pow(p.y - v.y, 2));
+    let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const projection = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
+    return Math.sqrt(Math.pow(p.x - projection.x, 2) + Math.pow(p.y - projection.y, 2));
+};
+
 const FlowModelerContent = () => {
     const { addToast } = useToast();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const [edgeVisibility, setEdgeVisibility] = useState({ qToO: true, oToQ: true, doc: true });
+    // const [edgeVisibility, setEdgeVisibility] = useState({ qToO: true, oToQ: true, doc: true }); // Unused
     const [globalAnimate, setGlobalAnimate] = useState(false);
     const [selectedNode, setSelectedNode] = useState(null);
     const [selectedEdge, setSelectedEdge] = useState(null);
     const [selectedWaypoint, setSelectedWaypoint] = useState(null); // { edgeId, index }
     const [manuallyMovedNodes, setManuallyMovedNodes] = useState(new Set());
     const { onNodeDrag: onNodeDragHelper, resetHelperLines, HelperLines } = useHelperLines();
-    const { screenToFlowPosition, project } = useReactFlow();
+    const { screenToFlowPosition } = useReactFlow();
     const { takeSnapshot, undo, redo, canUndo, canRedo, clearHistory } = useUndoRedo();
     const dragStartSnapshot = useRef(null);
     const fileInputRef = useRef(null);
@@ -152,7 +160,7 @@ const FlowModelerContent = () => {
                 };
             } else if (e.data?.selectedWaypointIndex !== undefined) {
                 // Clear selection from other edges
-                const { selectedWaypointIndex, ...restData } = e.data;
+                const { selectedWaypointIndex: _swi, ...restData } = e.data;
                 return { ...e, data: restData };
             }
             return e;
@@ -334,7 +342,7 @@ const FlowModelerContent = () => {
     const onNodeUpdate = useCallback((nodeId, newData) => {
         setNodes((nds) => nds.map((node) => {
             if (node.id === nodeId) {
-                return { ...node, data: { ...newData, onUpdate: onNodeUpdate } };
+                return { ...node, data: { ...node.data, ...newData } };
             }
             return node;
         }));
@@ -379,21 +387,14 @@ const FlowModelerContent = () => {
         setEdges((eds) => eds.map(e => {
             let newData = e.data;
             if (e.data?.selectedWaypointIndex !== undefined) {
-                const { selectedWaypointIndex, ...restData } = e.data;
+                const { selectedWaypointIndex: _swi, ...restData } = e.data;
                 newData = restData;
             }
             return { ...e, data: newData, selected: false, animated: globalAnimate };
         }));
     }, [setEdges, globalAnimate]);
 
-    const getDistanceToSegment = (p, v, w) => {
-        const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
-        if (l2 === 0) return Math.sqrt(Math.pow(p.x - v.x, 2) + Math.pow(p.y - v.y, 2));
-        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-        t = Math.max(0, Math.min(1, t));
-        const projection = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
-        return Math.sqrt(Math.pow(p.x - projection.x, 2) + Math.pow(p.y - projection.y, 2));
-    };
+
 
     const onEdgeClick = useCallback((event, edge) => {
         event.stopPropagation();
@@ -474,6 +475,24 @@ const FlowModelerContent = () => {
         }
     }, [selectedEdge, screenToFlowPosition, setEdges, onWaypointDrag, onWaypointClick, nodes, edges, globalAnimate, takeSnapshot]);
 
+    const handleDeleteNode = useCallback(() => {
+        if (!selectedNode) return;
+
+        // Delete connected edges
+        // const connectedEdges = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id);
+
+        takeSnapshot(nodes, edges);
+        setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
+        setSelectedNode(null);
+    }, [selectedNode, setNodes, setEdges, nodes, edges, takeSnapshot]);
+
+    const handleDeleteEdge = useCallback(() => {
+        if (!selectedEdge) return;
+        takeSnapshot(nodes, edges);
+        setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
+        setSelectedEdge(null);
+    }, [selectedEdge, setEdges, nodes, edges, takeSnapshot]);
+
     // Keyboard event handler for deletion
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -491,7 +510,7 @@ const FlowModelerContent = () => {
 
                             // If no waypoints left, revert to default edge type
                             if (waypoints.length === 0) {
-                                const { waypoints: _, selectedWaypointIndex, onWaypointDrag, onWaypointClick, ...restData } = e.data;
+                                const { waypoints: _, selectedWaypointIndex: _swi, onWaypointDrag: _d, onWaypointClick: _c, ...restData } = e.data;
                                 return {
                                     ...e,
                                     type: e.type.replace('curved', 'default'),
@@ -499,7 +518,7 @@ const FlowModelerContent = () => {
                                 };
                             }
 
-                            const { selectedWaypointIndex, ...restData } = e.data;
+                            const { selectedWaypointIndex: _swi, ...restData } = e.data;
                             return {
                                 ...e,
                                 data: {
@@ -551,30 +570,16 @@ const FlowModelerContent = () => {
         setEdges((eds) => eds.map(e => {
             let newData = e.data;
             if (e.data?.selectedWaypointIndex !== undefined) {
-                const { selectedWaypointIndex, ...restData } = e.data;
+                const { selectedWaypointIndex: _swi, ...restData } = e.data;
                 newData = restData;
             }
             return { ...e, data: newData, selected: false, animated: globalAnimate };
         }));
     }, [setEdges, globalAnimate]);
 
-    const handleDeleteNode = useCallback(() => {
-        if (!selectedNode) return;
-
-        // Delete connected edges
-        const connectedEdges = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id);
-
-        takeSnapshot(nodes, edges);
-        setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
-        setSelectedNode(null);
-    }, [selectedNode, setNodes, setEdges, nodes, edges, takeSnapshot]);
-
-    const handleDeleteEdge = useCallback(() => {
-        if (!selectedEdge) return;
-        takeSnapshot(nodes, edges);
-        setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
-        setSelectedEdge(null);
-    }, [selectedEdge, setEdges, nodes, edges, takeSnapshot]);
+    // Declared above
+    // const handleDeleteNode = ...
+    // const handleDeleteEdge = ...
 
     const toggleGlobalAnimation = () => {
         setGlobalAnimate(prev => !prev);
@@ -636,7 +641,7 @@ const FlowModelerContent = () => {
         } else {
             downloadXML(xml);
         }
-    }, [nodes, edges, fileHandle, manuallyMovedNodes]);
+    }, [nodes, edges, fileHandle, manuallyMovedNodes, addToast]);
 
 
 
@@ -667,7 +672,7 @@ const FlowModelerContent = () => {
         } else {
             downloadXML(xml);
         }
-    }, [nodes, edges]);
+    }, [nodes, edges, manuallyMovedNodes, addToast]);
 
     const handleCreateNew = useCallback(async () => {
         if (window.showSaveFilePicker) {
@@ -709,7 +714,7 @@ const FlowModelerContent = () => {
                 clearHistory(); // Clear undo history
             }
         }
-    }, [setNodes, setEdges, clearHistory]);
+    }, [setNodes, setEdges, clearHistory, addToast]);
 
     const handleLoad = useCallback(async () => {
         if (window.showOpenFilePicker) {
@@ -739,7 +744,7 @@ const FlowModelerContent = () => {
         } else {
             fileInputRef.current?.click();
         }
-    }, [loadFlowFromText]);
+    }, [loadFlowFromText, addToast, fileInputRef, clearHistory]);
 
     // Save shortcut
     useEffect(() => {
@@ -773,7 +778,7 @@ const FlowModelerContent = () => {
             console.error('Error reading file:', error);
             addToast('Error reading file.', 'error');
         }
-    }, [loadFlowFromText, clearHistory]);
+    }, [loadFlowFromText, clearHistory, addToast]);
 
     const handleExportVectorPDF = useCallback(() => {
         const nodesBounds = getNodesBounds(nodes);
@@ -820,7 +825,7 @@ const FlowModelerContent = () => {
             console.error('Error exporting Vector PDF:', err);
             addToast('Failed to export Vector PDF.', 'error');
         });
-    }, [nodes]);
+    }, [nodes, addToast]);
 
     return (
         <div style={{ width: '100%', height: '100%' }}>

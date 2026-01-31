@@ -6,7 +6,8 @@ test('cn merges classes', () => {
 })
 
 test('cn handles conditions', () => {
-    expect(cn('c-1', false && 'c-2', 'c-3')).toBe('c-1 c-3')
+    const condition = false
+    expect(cn('c-1', condition && 'c-2', 'c-3')).toBe('c-1 c-3')
 })
 
 test('cn merges tailwind classes', () => {

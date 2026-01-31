@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from 'reactflow';
 
 // Helper to calculate distance between two points
-const getDistance = (p1, p2) => {
-    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-};
+
 
 // Catmull-Rom spline to SVG path
 const getCatmullRomPath = (points) => {

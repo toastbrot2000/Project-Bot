@@ -46,7 +46,7 @@ const getLayoutedElements = (nodes, edges) => {
 
     // Separate document nodes for special positioning
     const documentNodes = nodes.filter(node => node.type === 'documentNode');
-    const otherNodes = nodes.filter(node => node.type !== 'documentNode');
+
 
     // Position non-document nodes using dagre layout
     // Load saved positions

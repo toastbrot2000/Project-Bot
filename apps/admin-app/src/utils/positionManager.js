@@ -81,7 +81,7 @@ export const clearPositions = () => {
  */
 export const hasPosition = (nodeId) => {
     const positions = loadPositions();
-    return positions.hasOwnProperty(nodeId);
+    return Object.prototype.hasOwnProperty.call(positions, nodeId);
 };
 
 /**

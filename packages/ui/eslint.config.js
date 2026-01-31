@@ -5,23 +5,17 @@ import { defineConfig } from 'eslint/config'
 
 export default defineConfig([
   {
-    ignores: ['dist', '.strapi', 'build'],
+    ignores: ['dist'],
   },
   {
-    files: ['**/*.{ts,tsx,js,jsx}'],
+    files: ['**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
     ],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.node,
-    },
-  },
-  {
-    files: ['types/generated/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-empty-object-type': 'off',
+      globals: globals.browser,
     },
   },
 ])

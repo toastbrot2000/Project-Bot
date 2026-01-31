@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export const useUndoRedo = (initialNodes = [], initialEdges = []) => {
+export const useUndoRedo = (_initialNodes = [], _initialEdges = []) => {
     const [past, setPast] = useState([]);
     const [future, setFuture] = useState([]);
 

@@ -292,7 +292,7 @@ export const DocumentNode = memo(({ data, id, selected }) => {
     );
 });
 
-export const WaypointNode = memo(({ data, isConnectable }) => {
+export const WaypointNode = memo(() => {
     return (
         <div className="w-2 h-2 rounded-full bg-muted-foreground/50 border border-muted-foreground cursor-grab flex items-center justify-center translate-x-[-50%] translate-y-[-50%]">
         </div>

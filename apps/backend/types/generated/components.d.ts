@@ -14,7 +14,7 @@ export interface DefaultOption extends Struct.ComponentSchema {
 }
 
 declare module '@strapi/strapi' {
-  export module Public {
+  export namespace Public {
     export interface ComponentSchemas {
       'default.option': DefaultOption;
     }
