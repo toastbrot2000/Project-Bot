@@ -1,14 +1,27 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import MDEditor from '@uiw/react-md-editor';
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 
 const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholder = "Enter text..." }) => {
+    const initialValueRef = useRef(value);
+
+    // Sync initial value when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            initialValueRef.current = value;
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
-    const handleOverlayClick = (e) => {
-        if (e.target === e.currentTarget) {
+    const handleCloseRequest = () => {
+        if (value !== initialValueRef.current) {
+            if (window.confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+                onClose();
+            }
+        } else {
             onClose();
         }
     };
@@ -30,7 +43,6 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
                 zIndex: 10000,
                 animation: 'fadeIn 0.2s ease-out'
             }}
-            onClick={handleOverlayClick}
             onMouseDown={(e) => e.stopPropagation()}
         >
             <style>
@@ -110,7 +122,7 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
                         </p>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleCloseRequest}
                         style={{
                             background: 'rgba(241, 245, 249, 1)',
                             border: 'none',
@@ -165,7 +177,7 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
                         gap: '12px'
                     }}>
                         <button
-                            onClick={onClose}
+                            onClick={handleCloseRequest}
                             style={{
                                 padding: '10px 20px',
                                 fontSize: '14px',
@@ -178,7 +190,7 @@ const TextModal = ({ isOpen, onClose, title, value, onChange, onSave, placeholde
                                 transition: 'all 0.2s'
                             }}
                         >
-                            Cancel
+                            Discard
                         </button>
                         <button
                             onClick={() => {
