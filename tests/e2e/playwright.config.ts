@@ -66,7 +66,7 @@ export default defineConfig({
       cwd: '../../',
     },
     {
-      command: 'npx strapi develop --debug',
+      command: 'npx strapi develop',
       url: 'http://127.0.0.1:1337',
       reuseExistingServer: !process.env.CI,
       timeout: 180 * 1000,
@@ -82,8 +82,6 @@ export default defineConfig({
         JWT_SECRET: 'testJwtSecret',
         DATABASE_CLIENT: 'sqlite',
         DATABASE_FILENAME: '.tmp/data.db',
-        STRAPI_LOG_LEVEL: 'debug',
-        DEBUG: 'strapi:*',
         NODE_OPTIONS: '--max-old-space-size=4096',
       },
     }
