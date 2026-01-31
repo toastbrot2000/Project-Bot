@@ -6,7 +6,7 @@
         "build": "pnpm --filter \"./apps/*\" build",
         "lint": "pnpm --filter \"./apps/*\" --filter \"./packages/*\" lint",
         "test": "vitest run",
-        "audit": "pnpm audit",
+        "audit": "pnpm audit --audit-level moderate",
         "optimize-assets": "node scripts/optimize-images.js"
     },
     "devDependencies": {
