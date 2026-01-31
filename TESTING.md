@@ -31,9 +31,9 @@ We use **Playwright** for end-to-end smoke tests and critical flow verification.
 
 ### Patterns
 
-- **Location**: Tests are located in `apps/e2e/tests`.
-- **Base URL**: Configured in `apps/e2e/playwright.config.ts`.
-- **Execution**: Run `pnpm --filter e2e-tests test`.
+- **Location**: Tests are located in `tests/e2e/tests/`.
+- **Base URL**: Configured in `tests/e2e/playwright.config.ts`.
+- **Execution**: Run `pnpm test:e2e` from the root.
 
 ### Example (Smoke Test)
 
@@ -46,9 +46,23 @@ test("smoke test", async ({ page }) => {
 });
 ```
 
-## Integration Testing
+## 🏗️ Architecture Note
 
-Integration tests should be used for components that interact with external services (like Strapi) without mocking the entire network layer if possible, or by using dedicated test databases.
+- **Vitest**: Each app has its own `vitest.config.ts` extending a base config. **Crucially**: React is aliased to local `node_modules` to prevent duplicate React errors in the monorepo.
+- **Strapi**: The backend boots in E2E via a dedicated webserver config that provides dummy secrets and sqlite database paths.
+
+## 📝 Troubleshooting
+
+### Duplicate React / Hook Errors
+
+If Vitest fails with React errors, ensure the app's `vitest.config.ts` alias points `react` to its local `node_modules`.
+
+### CI WebServer Failure (Strapi)
+
+If Strapi crashes in CI, check:
+
+1. **PNPM v10**: Authorization for `better-sqlite3` and `sharp` must be in `pnpm.onlyBuiltDependencies` in the root `package.json`.
+2. **Network**: Use `127.0.0.1` instead of `localhost` in the Playwright config.
 
 ## CI/CD Integration
 
