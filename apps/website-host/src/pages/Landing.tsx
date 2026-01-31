@@ -24,10 +24,10 @@ const Landing = () => {
                             Go to User App
                         </Link>
                         <Link
-                            to="/admin"
+                            to="/logic-modeller"
                             className="px-8 py-3 bg-white text-gray-900 hover:bg-gray-100 rounded-lg font-semibold transition shadow-lg"
                         >
-                            Go to Admin Panel
+                            Go to Logic Modeller
                         </Link>
                     </div>
                 </div>
@@ -56,12 +56,12 @@ const Landing = () => {
                         <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition">
                             <span className="text-2xl">⚙️</span>
                         </div>
-                        <h3 className="text-2xl font-bold mb-4 text-gray-800">Admin Dashboard</h3>
+                        <h3 className="text-2xl font-bold mb-4 text-gray-800">Logic Modeller</h3>
                         <p className="text-gray-600 mb-6 leading-relaxed">
                             Design and manage your workflows. Use the visual node editor to create, update, and organize question paths and document dependencies.
                         </p>
-                        <Link to="/admin" className="text-purple-600 font-semibold hover:text-purple-800 flex items-center gap-2">
-                            Open Dashboard <span>→</span>
+                        <Link to="/logic-modeller" className="text-purple-600 font-semibold hover:text-purple-800 flex items-center gap-2">
+                            Open Logic Modeller <span>→</span>
                         </Link>
                     </div>
                 </div>
