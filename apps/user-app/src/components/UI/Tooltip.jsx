@@ -40,12 +40,8 @@ export function Tooltip({ content, onClose, triggerElement }) {
                 // Relative top from the container's content box
                 const relativeTop = triggerRect.top - containerRect.top;
 
-                // Adjust for some padding or visual alignment (center of button?)
-                // Let's align top-to-top roughly.
-                topOffset = Math.max(0, relativeTop - 20); // -20 to account for container padding/margins if needed or visual preference
-
-                // We could also cap it to prevent overflow, but flex container might handle height.
-                // However, scrolling is inside components. 
+                // Start the tooltip slightly below the icon (30px offset)
+                topOffset = Math.max(0, relativeTop + 30); 
             }
         }
 

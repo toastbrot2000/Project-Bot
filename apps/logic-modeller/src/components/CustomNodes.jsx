@@ -47,9 +47,9 @@ export const QuestionNode = memo(({ data, id, selected }) => {
 
     return (
         <div
-            className={`min-w-[250px] max-w-[300px] rounded-lg border-3 p-4 transition-all duration-200 relative ${selected
-                ? 'bg-green-100 border-green-600 ring-4 ring-green-500/30 shadow-lg'
-                : 'bg-green-50 border-green-500 hover:border-green-600 hover:bg-green-100'
+            className={`min-w-[250px] max-w-[300px] rounded-lg border-4 border-solid p-4 transition-all duration-200 relative ${selected
+                ? 'bg-green-200 border-green-800 ring-4 ring-green-600/30 shadow-lg'
+                : 'bg-green-100 border-green-700 hover:border-green-800 hover:bg-green-200'
                 }`}
         >
             <Handle type="target" position={Position.Top} className="!bg-primary" />
@@ -131,9 +131,9 @@ export const OptionNode = memo(({ data, id, selected }) => {
         <div className="w-[100px] h-[100px] flex items-center justify-center relative">
             {/* Diamond Shape Background */}
             <div
-                className={`absolute w-[70px] h-[70px] transform rotate-45 transition-all duration-200 ${selected
-                    ? 'bg-yellow-200 border-3 border-yellow-600 shadow-[0_0_0_4px_rgba(250,204,21,0.4)] shadow-lg'
-                    : 'bg-yellow-100 border-3 border-yellow-500 hover:bg-yellow-200 hover:border-yellow-600'
+                className={`absolute w-[70px] h-[70px] transform rotate-45 transition-all duration-200 border-4 border-solid ${selected
+                    ? 'bg-yellow-200 border-yellow-800 shadow-[0_0_0_4px_rgba(250,204,21,0.4)] shadow-lg'
+                    : 'bg-yellow-100 border-yellow-700 hover:bg-yellow-200 hover:border-yellow-800'
                     }`}
             />
 
@@ -211,10 +211,10 @@ export const DocumentNode = memo(({ data, id, selected }) => {
 
     return (
         <div
-            className={`min-w-[220px] max-w-[280px] p-3 rounded border-3 transition-all duration-200 relative ${isMandatory ? 'bg-blue-100' : 'bg-blue-50'
+            className={`min-w-[220px] max-w-[280px] p-3 rounded border-4 border-solid transition-all duration-200 relative ${isMandatory ? 'bg-blue-200' : 'bg-blue-100'
                 } ${selected
-                    ? 'border-blue-600 ring-4 ring-blue-500/30 shadow-lg'
-                    : `border-${isMandatory ? 'blue-600' : 'blue-500'} hover:border-blue-600 hover:${isMandatory ? 'bg-blue-200' : 'bg-blue-100'}`
+                    ? 'border-blue-800 ring-4 ring-blue-600/30 shadow-lg'
+                    : `border-${isMandatory ? 'blue-800' : 'blue-700'} hover:border-blue-800 hover:${isMandatory ? 'bg-blue-300' : 'bg-blue-200'}`
                 }`}
         >
             <Handle type="target" position={Position.Right} className="!bg-accent-foreground" />
@@ -312,9 +312,9 @@ export const EndNode = memo(({ data, id, selected }) => {
 
     return (
         <div
-            className={`w-[60px] h-[60px] rounded-full flex items-center justify-center relative transition-all duration-200 ${selected
-                ? 'bg-red-200 border-3 border-red-600 shadow-[0_0_0_4px_rgba(239,68,68,0.4)] shadow-lg'
-                : 'bg-red-100 border-3 border-red-500 hover:bg-red-200 hover:border-red-600'
+            className={`w-[60px] h-[60px] rounded-full flex items-center justify-center relative transition-all duration-200 border-4 border-solid ${selected
+                ? 'bg-red-200 border-red-800 shadow-[0_0_0_4px_rgba(239,68,68,0.4)] shadow-lg'
+                : 'bg-red-100 border-red-700 hover:bg-red-200 hover:border-red-800'
                 }`}
         >
             <Handle type="target" position={Position.Top} className="!bg-destructive" />

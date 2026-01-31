@@ -58,7 +58,7 @@ const StartOverlay = ({ onCreate, onLoad }) => (
                     <MessageSquare size={48} />
                 </div>
             </div>
-            <h2 className="mb-3 text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Project Bot Admin</h2>
+            <h2 className="mb-3 text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Logic Modeller</h2>
             <p className="text-gray-500 mb-8">Create or edit your conversation flows visually.</p>
 
             <div className="flex flex-col gap-3">
@@ -197,25 +197,25 @@ const FlowModelerContent = () => {
         let markerEnd = { type: MarkerType.ArrowClosed };
         let style = { strokeWidth: 2 };
 
-        // Q→O edges: Thin, solid, gray (muted-foreground)
+        // Q→O edges: Solid, gray (muted-foreground) - slightly thicker
         if (sourceNode?.type === 'questionNode' && targetNode?.type === 'optionNode') {
             type = 'q-to-o';
-            style = { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1 };
+            style = { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2 };
         }
         // O→Q edges: Bold, dashed, dark gray (foreground)
         else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'questionNode') {
             type = 'o-to-q';
-            style = { stroke: 'hsl(var(--foreground))', strokeWidth: 2, strokeDasharray: '5,5' };
+            style = { stroke: 'hsl(var(--foreground))', strokeWidth: 3, strokeDasharray: '6,6' };
         }
         // O→D edges: Bold, dashed, blue (primary)
         else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'documentNode') {
             type = 'o-to-d';
-            style = { stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5,5' };
+            style = { stroke: 'hsl(var(--primary))', strokeWidth: 3, strokeDasharray: '6,6' };
         }
         // Any→End edges: Solid, red (destructive)
         else if (targetNode?.type === 'endNode') {
             type = 'default';
-            style = { stroke: 'hsl(var(--destructive))', strokeWidth: 2 };
+            style = { stroke: 'hsl(var(--destructive))', strokeWidth: 3 };
         }
 
         return { type, animated, markerEnd, style };
@@ -945,13 +945,13 @@ const FlowModelerContent = () => {
                     panOnDrag={[1, 2]}
                     panOnScroll={false}
                 >
-                    <Background gap={20} size={1} color="hsl(var(--border))" />
+                    <Background gap={25} size={2.5} color="hsl(var(--muted-foreground) / 0.25)" />
                     <HelperLines />
                     <Controls />
                     <MiniMap pannable zoomable />
                     <Panel position="top-left" className="m-0 p-0 flex gap-2" style={{ top: '16px', left: '16px' }}>
                         <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-2 flex items-center gap-2">
-                            <span className="font-semibold px-2 text-sm text-gray-700">Project Bot Admin</span>
+                            <span className="font-semibold px-2 text-sm text-gray-700">Logic Modeller</span>
                             <div className="h-4 w-px bg-gray-300 mx-1"></div>
                             <button onClick={handleCreateNew} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="New File">
                                 <FilePlus size={18} />

@@ -11,36 +11,32 @@ body {
 /* New container to wrap chat and side panel */
 #main-content {
   display: flex;
+  flex-direction: row; /* Desktop first, mobile @media will override */
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  /* FIX: Center the wrapper on wide screens */
-  gap: 4px;
-  /* Reserve space for footer (approx 60-80px) */
-  height: calc(100dvh - 80px);
-  /* dvh accounts for mobile browser toolbars */
-  min-height: 0;
+  gap: 20px;
+  height: 100%;
   padding: 20px;
   box-sizing: border-box;
 }
 
 /* === Chat-Container === */
 #chat-container {
-  width: 100%;
-  max-width: 600px;
+  width: 600px; /* Fixed width to maintain exact size */
+  min-width: 600px; /* Prevent shrinking */
+  max-width: 600px; /* Prevent growing */
+  height: calc(100vh - 180px); /* Fixed height based on viewport */
   background-color: #ffffff;
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  height: 90vh;
+  flex: 0 0 auto; /* Don't grow or shrink */
   display: flex;
-  flex-shrink: 0;
   flex-direction: column;
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
+  overflow: hidden; /* Prevent content from expanding container */
 }
 
 /* === Chatbox mit Bubbles === */
@@ -101,6 +97,8 @@ body {
   align-self: flex-start;
   margin: 4px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Remove the extra padding on the right, as flexbox handles the layout. */
@@ -239,15 +237,13 @@ body {
 
 /* === Desktop Side Tooltip Panel === */
 #tooltip-side-panel {
-  flex: 0 1 auto;
-  /* Don't grow, shrink if needed, basis is auto */
+  flex: 0 0 auto;
   min-width: 380px;
   /* Set a minimum width for consistency */
-  max-width: 500px;
+  max-width: 600px;
   /* Set a max-width for readability */
   display: flex;
-  align-self: flex-start;
-  /* Align to the top of the flex container */
+  align-self: flex-start; /* Align to top, let content determine height */
   flex-direction: column;
   background-color: #ffffff;
   border-radius: 20px;
@@ -257,7 +253,8 @@ body {
   animation: slideInFromRight 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
   overflow: hidden;
   margin-left: 20px;
-  /* Prevent content from spilling during animation */
+  max-height: calc(100vh - 285px);
+  height: auto;
 }
 
 #tooltip-side-panel.is-hiding {
@@ -728,6 +725,7 @@ body {
   }
 
   #chat-container {
+    width: 100%; /* Override fixed width on mobile */
     border-radius: 0;
     /* Remove border-radius for a full-screen look */
     padding: 16px;
@@ -741,6 +739,8 @@ body {
     padding: 0;
     /* Remove padding for edge-to-edge feel */
     gap: 0;
+    flex-direction: column;
+    align-items: center;
   }
 
   #chat-box {

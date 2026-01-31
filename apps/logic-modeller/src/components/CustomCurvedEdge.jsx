@@ -91,7 +91,7 @@ export default function CustomCurvedEdge({
     const path = getCatmullRomPath(allPoints);
 
     // Selection style override
-    const edgeStyle = selected ? { ...style, stroke: '#f59e0b', strokeWidth: (style.strokeWidth || 2) + 1 } : style;
+    const edgeStyle = selected ? { ...style, stroke: '#f59e0b', strokeWidth: (style.strokeWidth || 2) + 1.5 } : style;
 
     // Handle waypoint drag
     const handleMouseDown = (e, index) => {

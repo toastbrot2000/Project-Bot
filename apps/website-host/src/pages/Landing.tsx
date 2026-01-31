@@ -67,10 +67,6 @@ const Landing = () => {
                 </div>
             </div>
 
-            {/* Footer */}
-            <footer className="bg-gray-800 text-gray-300 py-8 text-center mt-auto">
-                <p>© 2026 Project Bot. Built with React, Vite & Module Federation.</p>
-            </footer>
         </div>
     );
 };
