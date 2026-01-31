@@ -23,7 +23,7 @@ import { savePositions, clearPositions } from '../utils/positionManager';
 import { flowToXML, downloadXML } from '../utils/flowToXML';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { useHelperLines } from '../hooks/useFlowHelperLines';
-import { isEdgeInBox, getUpdatedEdges } from '../utils/selectionUtils';
+import { getUpdatedEdges } from '../utils/selectionUtils';
 import { useToast, Button } from '@project-bot/ui';
 import {
     FilePlus,
@@ -113,6 +113,7 @@ const FlowModelerContent = () => {
     const [flowKey, setFlowKey] = useState(0); // Key to force remount of ReactFlow
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [selectionStart, setSelectionStart] = useState(null);
+
 
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
@@ -1017,25 +1018,6 @@ const FlowModelerContent = () => {
 
                     <Panel position="bottom-center" className="m-0 mb-8">
                         <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-full px-4 py-2 flex items-center gap-4">
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => undo(nodes, edges, setNodes, setEdges)}
-                                    disabled={!canUndo}
-                                    className={`p-1.5 rounded-full transition-colors ${canUndo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
-                                    title="Undo"
-                                >
-                                    <Undo2 size={18} />
-                                </button>
-                                <button
-                                    onClick={() => redo(nodes, edges, setNodes, setEdges)}
-                                    disabled={!canRedo}
-                                    className={`p-1.5 rounded-full transition-colors ${canRedo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
-                                    title="Redo"
-                                >
-                                    <Redo2 size={18} />
-                                </button>
-                            </div>
-                            <div className="w-px h-5 bg-gray-300"></div>
                             <button
                                 onClick={toggleGlobalAnimation}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${globalAnimate ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'hover:bg-gray-100 text-gray-700'}`}
