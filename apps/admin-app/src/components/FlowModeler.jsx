@@ -103,7 +103,7 @@ const FlowModelerContent = () => {
     const [selectedWaypoint, setSelectedWaypoint] = useState(null); // { edgeId, index }
     const [manuallyMovedNodes, setManuallyMovedNodes] = useState(new Set());
     const { onNodeDrag: onNodeDragHelper, resetHelperLines, HelperLines } = useHelperLines();
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, getNodes, getEdges } = useReactFlow();
     const { takeSnapshot, undo, redo, canUndo, canRedo, clearHistory } = useUndoRedo();
     const dragStartSnapshot = useRef(null);
     const fileInputRef = useRef(null);
@@ -121,8 +121,8 @@ const FlowModelerContent = () => {
     }), []);
 
     const onWaypointDragStart = useCallback(() => {
-        dragStartSnapshot.current = { nodes, edges };
-    }, [nodes, edges]);
+        dragStartSnapshot.current = { nodes: getNodes(), edges: getEdges() };
+    }, [getNodes, getEdges]);
 
     const onWaypointDragStop = useCallback(() => {
         if (dragStartSnapshot.current) {
@@ -135,13 +135,14 @@ const FlowModelerContent = () => {
                 waypoint: e.data?.waypoint // legacy
             }));
 
-            const edgesChanged = JSON.stringify(getEdgeState(edges)) !== JSON.stringify(getEdgeState(oldEdges));
+            const currentEdges = getEdges();
+            const edgesChanged = JSON.stringify(getEdgeState(currentEdges)) !== JSON.stringify(getEdgeState(oldEdges));
             if (edgesChanged) {
                 takeSnapshot(oldNodes, oldEdges);
             }
             dragStartSnapshot.current = null;
         }
-    }, [edges, takeSnapshot]);
+    }, [getEdges, takeSnapshot]);
 
     const onWaypointClick = useCallback((edgeId, index) => {
         setSelectedWaypoint({ edgeId, index });
@@ -218,22 +219,24 @@ const FlowModelerContent = () => {
     }, []);
 
     const onConnect = useCallback((params) => {
-        takeSnapshot(nodes, edges);
+        const currentNodes = getNodes();
+        const currentEdges = getEdges();
+        takeSnapshot(currentNodes, currentEdges);
         const { source, target } = params;
 
         // Prevent self-loops
         if (source === target) return;
 
         // Check for existing connection
-        const exists = edges.some(e =>
+        const exists = currentEdges.some(e =>
             (e.source === source && e.target === target) ||
             (e.source === target && e.target === source)
         );
         if (exists) return;
 
         // Determine edge type and style based on nodes
-        const sourceNode = nodes.find(n => n.id === source);
-        const targetNode = nodes.find(n => n.id === target);
+        const sourceNode = currentNodes.find(n => n.id === source);
+        const targetNode = currentNodes.find(n => n.id === target);
 
         const { type, markerEnd, style } = getEdgeParams(sourceNode, targetNode);
 
@@ -248,27 +251,29 @@ const FlowModelerContent = () => {
         };
 
         setEdges((eds) => addEdge(newEdge, eds));
-    }, [nodes, edges, globalAnimate, setEdges, onWaypointDrag, getEdgeParams, takeSnapshot, onWaypointClick, onWaypointDragStart, onWaypointDragStop]);
+    }, [getNodes, getEdges, globalAnimate, setEdges, onWaypointDrag, getEdgeParams, takeSnapshot, onWaypointClick, onWaypointDragStart, onWaypointDragStop]);
 
     const onReconnect = useCallback((oldEdge, newConnection) => {
-        takeSnapshot(nodes, edges);
+        const currentNodes = getNodes();
+        const currentEdges = getEdges();
+        takeSnapshot(currentNodes, currentEdges);
         const { source, target } = newConnection;
 
         // Prevent self-loops
         if (source === target) return;
 
         // Check for existing connection (excluding the one we are reconnecting)
-        const exists = edges.some(e =>
+        const exists = currentEdges.some(e =>
             e.id !== oldEdge.id &&
             ((e.source === source && e.target === target) ||
                 (e.source === target && e.target === source))
         );
         if (exists) return;
 
-        const oldSourceNode = nodes.find(n => n.id === oldEdge.source);
-        const oldTargetNode = nodes.find(n => n.id === oldEdge.target);
-        const newSourceNode = nodes.find(n => n.id === source);
-        const newTargetNode = nodes.find(n => n.id === target);
+        const oldSourceNode = currentNodes.find(n => n.id === oldEdge.source);
+        const oldTargetNode = currentNodes.find(n => n.id === oldEdge.target);
+        const newSourceNode = currentNodes.find(n => n.id === source);
+        const newTargetNode = currentNodes.find(n => n.id === target);
 
         // Enforce strict node type consistency
         // If source changed, new source must be same type as old source
@@ -298,11 +303,11 @@ const FlowModelerContent = () => {
                 return e;
             });
         });
-    }, [nodes, edges, setEdges, getEdgeParams, onWaypointDrag, onWaypointClick, globalAnimate, takeSnapshot, onWaypointDragStart, onWaypointDragStop]);
+    }, [getNodes, getEdges, setEdges, getEdgeParams, onWaypointDrag, onWaypointClick, globalAnimate, takeSnapshot, onWaypointDragStart, onWaypointDragStop]);
 
     const onNodeDragStart = useCallback(() => {
-        dragStartSnapshot.current = { nodes, edges };
-    }, [nodes, edges]);
+        dragStartSnapshot.current = { nodes: getNodes(), edges: getEdges() };
+    }, [getNodes, getEdges]);
 
     const onNodeDragStop = useCallback(() => {
         resetHelperLines();
@@ -316,18 +321,19 @@ const FlowModelerContent = () => {
                 y: n.position.y
             }));
 
-            const nodesChanged = JSON.stringify(getNodeState(nodes)) !== JSON.stringify(getNodeState(oldNodes));
+            const currentNodes = getNodes();
+            const nodesChanged = JSON.stringify(getNodeState(currentNodes)) !== JSON.stringify(getNodeState(oldNodes));
             if (nodesChanged) {
                 takeSnapshot(oldNodes, oldEdges);
             }
             dragStartSnapshot.current = null;
         }
-    }, [nodes, takeSnapshot, resetHelperLines]);
+    }, [getNodes, takeSnapshot, resetHelperLines]);
 
     const onNodeDrag = useCallback((event, node) => {
-        onNodeDragHelper(event, node, nodes, setNodes);
+        onNodeDragHelper(event, node, getNodes(), setNodes);
         setManuallyMovedNodes((prev) => new Set(prev).add(node.id));
-    }, [nodes, setNodes, onNodeDragHelper]);
+    }, [getNodes, setNodes, onNodeDragHelper]);
 
     const onDragStart = (event, nodeType) => {
         event.dataTransfer.setData('application/reactflow', nodeType);
@@ -372,11 +378,11 @@ const FlowModelerContent = () => {
                 },
             };
 
-            takeSnapshot(nodes, edges);
+            takeSnapshot(getNodes(), getEdges());
             setNodes((nds) => nds.concat(newNode));
             setManuallyMovedNodes((prev) => new Set(prev).add(newNode.id));
         },
-        [screenToFlowPosition, setNodes, nodes, edges, takeSnapshot, onNodeUpdate]
+        [screenToFlowPosition, setNodes, getNodes, getEdges, takeSnapshot, onNodeUpdate]
     );
 
     const onNodeClick = useCallback((event, node) => {
@@ -415,8 +421,9 @@ const FlowModelerContent = () => {
             }
 
             // Find insertion index
-            const sourceNode = nodes.find(n => n.id === edge.source);
-            const targetNode = nodes.find(n => n.id === edge.target);
+            const currentNodes = getNodes();
+            const sourceNode = currentNodes.find(n => n.id === edge.source);
+            const targetNode = currentNodes.find(n => n.id === edge.target);
 
             if (sourceNode && targetNode) {
                 // Construct full path of points: Source -> W1 -> W2 -> ... -> Target
@@ -446,7 +453,7 @@ const FlowModelerContent = () => {
                 }
 
                 // Insert at found index
-                takeSnapshot(nodes, edges);
+                takeSnapshot(currentNodes, getEdges());
                 waypoints.splice(insertIndex, 0, { x: position.x, y: position.y });
 
                 const updatedEdge = {
@@ -473,7 +480,7 @@ const FlowModelerContent = () => {
                 animated: e.id === edge.id ? true : globalAnimate
             })));
         }
-    }, [selectedEdge, screenToFlowPosition, setEdges, onWaypointDrag, onWaypointClick, nodes, edges, globalAnimate, takeSnapshot, onWaypointDragStart, onWaypointDragStop]);
+    }, [selectedEdge, screenToFlowPosition, setEdges, onWaypointDrag, onWaypointClick, getNodes, getEdges, globalAnimate, takeSnapshot, onWaypointDragStart, onWaypointDragStop]);
 
     const handleDeleteNode = useCallback(() => {
         if (!selectedNode) return;
@@ -481,17 +488,17 @@ const FlowModelerContent = () => {
         // Delete connected edges
         // const connectedEdges = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id);
 
-        takeSnapshot(nodes, edges);
+        takeSnapshot(getNodes(), getEdges());
         setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
         setSelectedNode(null);
-    }, [selectedNode, setNodes, nodes, edges, takeSnapshot]);
+    }, [selectedNode, setNodes, getNodes, getEdges, takeSnapshot]);
 
     const handleDeleteEdge = useCallback(() => {
         if (!selectedEdge) return;
-        takeSnapshot(nodes, edges);
+        takeSnapshot(getNodes(), getEdges());
         setEdges((eds) => eds.filter((e) => e.id !== selectedEdge.id));
         setSelectedEdge(null);
-    }, [selectedEdge, setEdges, nodes, edges, takeSnapshot]);
+    }, [selectedEdge, setEdges, getNodes, getEdges, takeSnapshot]);
 
     // Keyboard event handler for deletion
     useEffect(() => {
@@ -502,7 +509,7 @@ const FlowModelerContent = () => {
                 if (selectedWaypoint) {
                     // Delete waypoint
                     event.preventDefault();
-                    takeSnapshot(nodes, edges);
+                    takeSnapshot(getNodes(), getEdges());
                     setEdges((eds) => eds.map(e => {
                         if (e.id === selectedWaypoint.edgeId) {
                             const waypoints = [...(e.data.waypoints || [])];
@@ -542,7 +549,7 @@ const FlowModelerContent = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, nodes, edges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteNode, handleDeleteEdge]);
+    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, getNodes, getEdges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteNode, handleDeleteEdge]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -550,17 +557,19 @@ const FlowModelerContent = () => {
 
             if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
                 event.preventDefault();
+                const currentNodes = getNodes();
+                const currentEdges = getEdges();
                 if (event.shiftKey) {
-                    if (canRedo) redo(nodes, edges, setNodes, setEdges);
+                    if (canRedo) redo(currentNodes, currentEdges, setNodes, setEdges);
                 } else {
-                    if (canUndo) undo(nodes, edges, setNodes, setEdges);
+                    if (canUndo) undo(currentNodes, currentEdges, setNodes, setEdges);
                 }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [nodes, edges, undo, redo, canUndo, canRedo, setNodes, setEdges]);
+    }, [getNodes, getEdges, undo, redo, canUndo, canRedo, setNodes, setEdges]);
 
     const onPaneClick = useCallback(() => {
         setSelectedNode(null);
@@ -622,14 +631,16 @@ const FlowModelerContent = () => {
     }, [setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, onNodeUpdate, addToast]);
 
     const handleSave = useCallback(async () => {
-        const xml = flowToXML(nodes, edges);
+        const currentNodes = getNodes();
+        const currentEdges = getEdges();
+        const xml = flowToXML(currentNodes, currentEdges);
 
         if (fileHandle && window.showSaveFilePicker) {
             try {
                 const writable = await fileHandle.createWritable();
 
                 // Save positions before generating XML to ensure up-to-date state
-                savePositions(nodes, manuallyMovedNodes, edges);
+                savePositions(currentNodes, manuallyMovedNodes, currentEdges);
 
                 await writable.write(xml);
                 await writable.close();
@@ -641,12 +652,14 @@ const FlowModelerContent = () => {
         } else {
             downloadXML(xml);
         }
-    }, [nodes, edges, fileHandle, manuallyMovedNodes, addToast]);
+    }, [getNodes, getEdges, fileHandle, manuallyMovedNodes, addToast]);
 
 
 
     const handleSaveAs = useCallback(async () => {
-        const xml = flowToXML(nodes, edges);
+        const currentNodes = getNodes();
+        const currentEdges = getEdges();
+        const xml = flowToXML(currentNodes, currentEdges);
         if (window.showSaveFilePicker) {
             try {
                 const handle = await window.showSaveFilePicker({
@@ -658,7 +671,7 @@ const FlowModelerContent = () => {
                 const writable = await handle.createWritable();
 
                 // Save positions
-                savePositions(nodes, manuallyMovedNodes, edges);
+                savePositions(currentNodes, manuallyMovedNodes, currentEdges);
 
                 await writable.write(xml);
                 await writable.close();
@@ -672,7 +685,7 @@ const FlowModelerContent = () => {
         } else {
             downloadXML(xml);
         }
-    }, [nodes, edges, manuallyMovedNodes, addToast]);
+    }, [getNodes, getEdges, manuallyMovedNodes, addToast]);
 
     const handleCreateNew = useCallback(async () => {
         if (window.showSaveFilePicker) {
@@ -781,7 +794,7 @@ const FlowModelerContent = () => {
     }, [loadFlowFromText, clearHistory, addToast]);
 
     const handleExportVectorPDF = useCallback(() => {
-        const nodesBounds = getNodesBounds(nodes);
+        const nodesBounds = getNodesBounds(getNodes());
         const padding = 50;
         const width = nodesBounds.width + padding * 2;
         const height = nodesBounds.height + padding * 2;
@@ -825,7 +838,7 @@ const FlowModelerContent = () => {
             console.error('Error exporting Vector PDF:', err);
             addToast('Failed to export Vector PDF.', 'error');
         });
-    }, [nodes, addToast]);
+    }, [getNodes, addToast]);
 
     return (
         <div style={{ width: '100%', height: '100%' }}>
