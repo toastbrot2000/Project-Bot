@@ -2,6 +2,7 @@
     "name": "@project-bot/tailwind-config",
     "version": "0.0.0",
     "private": true,
+    "type": "module",
     "main": "tailwind.config.js",
     "scripts": {
         "lint": "eslint ."

@@ -46,7 +46,7 @@ importers:
     dependencies:
       '@project-bot/tailwind-config':
         specifier: workspace:*
-        version: link:../../packages/config/tailwind
+        version: link:../../packages/tailwind-config
       '@project-bot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -167,17 +167,11 @@ importers:
         specifier: ^8.53.1
         version: 8.53.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
-  apps/e2e:
-    devDependencies:
-      '@playwright/test':
-        specifier: ^1.58.1
-        version: 1.58.1
-
   apps/user-app:
     dependencies:
       '@project-bot/tailwind-config':
         specifier: workspace:*
-        version: link:../../packages/config/tailwind
+        version: link:../../packages/tailwind-config
       '@project-bot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -241,7 +235,7 @@ importers:
         version: link:../../packages/shared-flow
       '@project-bot/tailwind-config':
         specifier: workspace:*
-        version: link:../../packages/config/tailwind
+        version: link:../../packages/tailwind-config
       '@project-bot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -310,7 +304,29 @@ importers:
         specifier: ^7.2.4
         version: 7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)
 
-  packages/config/tailwind:
+  packages/shared-flow:
+    dependencies:
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.0.0
+        version: 18.3.1(react@18.3.1)
+      reactflow:
+        specifier: ^11.0.0
+        version: 11.11.4(@types/react@19.2.9)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@2.6.1)
+      globals:
+        specifier: ^16.5.0
+        version: 16.5.0
+      typescript-eslint:
+        specifier: ^8.53.1
+        version: 8.53.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/tailwind-config:
     dependencies:
       '@tailwindcss/postcss':
         specifier: ^4.1.18
@@ -338,33 +354,11 @@ importers:
         specifier: ^8.53.1
         version: 8.53.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
-  packages/shared-flow:
-    dependencies:
-      react:
-        specifier: ^18.0.0
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.0.0
-        version: 18.3.1(react@18.3.1)
-      reactflow:
-        specifier: ^11.0.0
-        version: 11.11.4(@types/react@19.2.9)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-    devDependencies:
-      eslint:
-        specifier: ^9.39.2
-        version: 9.39.2(jiti@2.6.1)
-      globals:
-        specifier: ^16.5.0
-        version: 16.5.0
-      typescript-eslint:
-        specifier: ^8.53.1
-        version: 8.53.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
-
   packages/ui:
     dependencies:
       '@project-bot/tailwind-config':
         specifier: workspace:*
-        version: link:../config/tailwind
+        version: link:../tailwind-config
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -415,6 +409,12 @@ importers:
       typescript-eslint:
         specifier: ^8.53.1
         version: 8.53.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+
+  tests/e2e:
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.58.1
+        version: 1.58.1
 
 packages:
 

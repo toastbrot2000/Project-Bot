@@ -7,7 +7,7 @@
         "lint": "pnpm --filter \"./apps/*\" --filter \"./packages/*\" lint",
         "test": "vitest run",
         "audit": "pnpm audit --audit-level moderate",
-        "optimize-assets": "node scripts/optimize-images.js"
+        "optimize-assets": "node tooling/optimize-images.js"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "^6.9.1",
