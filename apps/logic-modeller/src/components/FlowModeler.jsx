@@ -112,7 +112,7 @@ const FlowModelerContent = () => {
     const [isProjectLoaded, setIsProjectLoaded] = useState(false);
     const [flowKey, setFlowKey] = useState(0); // Key to force remount of ReactFlow
     const [showShortcuts, setShowShortcuts] = useState(false);
-    const [selectionStart, setSelectionStart] = useState(null);
+    const [_selectionStart, setSelectionStart] = useState(null);
 
 
     const edgeTypes = useMemo(() => ({
