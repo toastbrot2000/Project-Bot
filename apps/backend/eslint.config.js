@@ -22,6 +22,7 @@ export default defineConfig([
     files: ['types/generated/**/*.ts'],
     rules: {
       '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/prefer-namespace-keyword': 'off',
     },
   },
 ])

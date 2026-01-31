@@ -1,4 +1,26 @@
-**/.vscode/
+# OS and IDE
+.DS_Store
+.idea
+.vscode/*
+*.suo
+*.sln
+*.sw?
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build and Production Artifacts
+dist
+dist-ssr
+build
+.strapi
+.vite
+.tmp
+.cache
+public/uploads
+**/.__mf__temp
 
 # Logs
 logs
@@ -9,24 +31,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment and Secrets
+.env
+.env.local
+.env.*.local
+!.env.example
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Ignore XML files in public folders
+# Project Specific
 **/public/*.xml
 apps/backend/.strapi-updater.json
+apps/backend/.strapi-cloud.json
 audit_report.json
 audit.json
