@@ -21,6 +21,8 @@ build
 .cache
 public/uploads
 **/.__mf__temp
+apps/backend/.strapi-updater.json
+
 
 # Logs
 logs
@@ -47,4 +49,3 @@ apps/backend/.strapi-updater.json
 apps/backend/.strapi-cloud.json
 audit_report.json
 audit.json
-
