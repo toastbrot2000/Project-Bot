@@ -66,11 +66,11 @@ export default defineConfig({
       cwd: '../../',
     },
     {
-      command: 'pnpm --filter @project-bot/backend develop -- --debug',
+      command: 'npx strapi develop --debug',
       url: 'http://127.0.0.1:1337',
       reuseExistingServer: !process.env.CI,
       timeout: 180 * 1000,
-      cwd: '../../',
+      cwd: '../../apps/backend',
       env: {
         HOST: '0.0.0.0',
         PORT: '1337',
