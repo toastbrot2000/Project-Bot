@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: 22
           cache: "pnpm"
-      - run: pnpm audit
+      - run: pnpm run audit
 
   test-e2e:
     runs-on: ubuntu-latest
