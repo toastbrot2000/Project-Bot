@@ -66,11 +66,13 @@ export default defineConfig({
       cwd: '../../',
     },
     {
-      command: process.env.CI ? 'npx strapi start' : 'npx strapi develop',
+      command: 'npx strapi develop',
       url: 'http://127.0.0.1:1337',
       reuseExistingServer: !process.env.CI,
       timeout: 180 * 1000,
       cwd: '../../apps/backend',
+      stdout: 'pipe',
+      stderr: 'pipe',
       env: {
         HOST: '0.0.0.0',
         PORT: '1337',
