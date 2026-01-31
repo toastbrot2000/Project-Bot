@@ -841,7 +841,7 @@ const FlowModelerContent = () => {
     }, [getNodes, addToast]);
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
+        <div className="relative w-full h-full">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -874,7 +874,7 @@ const FlowModelerContent = () => {
                     selectionOnDrag={true}
                     selectionMode="partial"
                     panOnDrag={[1]}
-                    panOnScroll={true}
+                    panOnScroll={false}
                 >
                     <Background gap={20} size={1} color="hsl(var(--border))" />
                     <HelperLines />
