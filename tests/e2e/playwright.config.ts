@@ -41,7 +41,7 @@ export default defineConfig({
       name: 'backend',
       use: { 
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:1337',
+        baseURL: 'http://127.0.0.1:1337',
       },
       testMatch: 'backend/test/e2e/*.spec.ts',
     },
@@ -66,8 +66,8 @@ export default defineConfig({
       cwd: '../../',
     },
     {
-      command: 'pnpm develop',
-      url: 'http://localhost:1337',
+      command: 'pnpm develop --debug',
+      url: 'http://127.0.0.1:1337',
       reuseExistingServer: !process.env.CI,
       timeout: 180 * 1000,
       cwd: '../../apps/backend',
@@ -82,6 +82,8 @@ export default defineConfig({
         JWT_SECRET: 'testJwtSecret',
         DATABASE_CLIENT: 'sqlite',
         DATABASE_FILENAME: '.tmp/data.db',
+        STRAPI_LOG_LEVEL: 'debug',
+        DEBUG: 'strapi:*',
       },
     }
   ],
