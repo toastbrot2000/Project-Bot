@@ -64,17 +64,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Now this will actually work
       - run: pnpm test:affected
-        env:
-          HOST: "0.0.0.0"
-          PORT: 1337
-          APP_KEYS: "testKey1,testKey2"
-          API_TOKEN_SALT: "testSalt"
-          ADMIN_JWT_SECRET: "testSecret"
-          TRANSFER_TOKEN_SALT: "testSalt2"
-          ENCRYPTION_KEY: "testEncryptionKey"
-          JWT_SECRET: "testJwtSecret"
-          DATABASE_CLIENT: "sqlite"
-          DATABASE_FILENAME: ".tmp/data.db"
 
   # 4. Heavy checks (E2E) - only run if Unit passes
   test-e2e:
@@ -94,15 +83,4 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm --filter e2e-tests exec playwright install --with-deps
       - name: Run Playwright tests
-        run: pnpm --filter e2e-tests test
-        env:
-          HOST: "0.0.0.0"
-          PORT: 1337
-          APP_KEYS: "testKey1,testKey2"
-          API_TOKEN_SALT: "testSalt"
-          ADMIN_JWT_SECRET: "testSecret"
-          TRANSFER_TOKEN_SALT: "testSalt2"
-          ENCRYPTION_KEY: "testEncryptionKey"
-          JWT_SECRET: "testJwtSecret"
-          DATABASE_CLIENT: "sqlite"
-          DATABASE_FILENAME: ".tmp/data.db"
+        run: pnpm test:e2e

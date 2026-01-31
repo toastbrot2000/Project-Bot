@@ -66,11 +66,23 @@ export default defineConfig({
       cwd: '../../',
     },
     {
-      command: 'pnpm --filter backend develop',
+      command: 'pnpm develop',
       url: 'http://localhost:1337',
       reuseExistingServer: !process.env.CI,
       timeout: 180 * 1000,
-      cwd: '../../',
+      cwd: '../../apps/backend',
+      env: {
+        HOST: '0.0.0.0',
+        PORT: '1337',
+        APP_KEYS: 'testKey1,testKey2',
+        API_TOKEN_SALT: 'testSalt',
+        ADMIN_JWT_SECRET: 'testSecret',
+        TRANSFER_TOKEN_SALT: 'testSalt2',
+        ENCRYPTION_KEY: 'testEncryptionKey',
+        JWT_SECRET: 'testJwtSecret',
+        DATABASE_CLIENT: 'sqlite',
+        DATABASE_FILENAME: '.tmp/data.db',
+      },
     }
   ],
 });

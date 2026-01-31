@@ -8,7 +8,7 @@
     "test": "pnpm -r --filter \"./apps/*\" test",
     "test:debug": "vitest run",
     "test:affected": "pnpm -r --filter \"...[origin/main]\" test",
-    "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
+    "test:e2e": "pnpm --filter e2e-tests e2e",
     "audit": "pnpm audit --audit-level moderate",
     "optimize-assets": "node tooling/optimize-images.js"
 },
