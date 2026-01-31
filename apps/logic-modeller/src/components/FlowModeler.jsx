@@ -23,6 +23,7 @@ import { savePositions, clearPositions } from '../utils/positionManager';
 import { flowToXML, downloadXML } from '../utils/flowToXML';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { useHelperLines } from '../hooks/useFlowHelperLines';
+import { isEdgeInBox, getUpdatedEdges } from '../utils/selectionUtils';
 import { useToast, Button } from '@project-bot/ui';
 import {
     FilePlus,
@@ -111,6 +112,7 @@ const FlowModelerContent = () => {
     const [isProjectLoaded, setIsProjectLoaded] = useState(false);
     const [flowKey, setFlowKey] = useState(0); // Key to force remount of ReactFlow
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [selectionStart, setSelectionStart] = useState(null);
 
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
@@ -613,6 +615,52 @@ const FlowModelerContent = () => {
         setEdges(eds => eds.map(e => ({ ...e, animated: e.selected ? true : !globalAnimate })));
     };
 
+    const onSelectionStart = useCallback((event) => {
+        const flowStartPos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        setSelectionStart(flowStartPos);
+
+        const handleMouseMove = (moveEvent) => {
+            const currentPos = screenToFlowPosition({ x: moveEvent.clientX, y: moveEvent.clientY });
+
+            const x = Math.min(flowStartPos.x, currentPos.x);
+            const y = Math.min(flowStartPos.y, currentPos.y);
+            const width = Math.abs(flowStartPos.x - currentPos.x);
+            const height = Math.abs(flowStartPos.y - currentPos.y);
+
+            const selectionBox = { x, y, width, height };
+            const currentNodes = getNodes();
+            
+            setEdges((eds) => getUpdatedEdges(eds, currentNodes, selectionBox, globalAnimate, moveEvent.shiftKey));
+        };
+
+        const handleMouseUp = (upEvent) => {
+            const finalPos = screenToFlowPosition({ x: upEvent.clientX, y: upEvent.clientY });
+            
+            const x = Math.min(flowStartPos.x, finalPos.x);
+            const y = Math.min(flowStartPos.y, finalPos.y);
+            const width = Math.abs(flowStartPos.x - finalPos.x);
+            const height = Math.abs(flowStartPos.y - finalPos.y);
+
+            if (width >= 5 || height >= 5) {
+                const selectionBox = { x, y, width, height };
+                const currentNodes = getNodes();
+                setEdges((eds) => getUpdatedEdges(eds, currentNodes, selectionBox, globalAnimate, upEvent.shiftKey));
+            }
+
+            setSelectionStart(null);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+    }, [screenToFlowPosition, getNodes, setEdges, globalAnimate]);
+
+    // onSelectionEnd is handled by global handleMouseUp
+    const onSelectionEnd = useCallback(() => {
+        setSelectionStart(null);
+    }, []);
+
     const loadFlowFromText = useCallback((text) => {
         try {
             const { nodes: newNodes, edges: newEdges } = parseXMLToFlow(text);
@@ -889,6 +937,8 @@ const FlowModelerContent = () => {
                     onPaneClick={onPaneClick}
                     onDragOver={onDragOver}
                     onDrop={onDrop}
+                    onSelectionStart={onSelectionStart}
+                    onSelectionEnd={onSelectionEnd}
                     selectionOnDrag={true}
                     selectionMode="partial"
                     panOnDrag={[1]}
