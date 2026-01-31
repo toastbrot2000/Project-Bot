@@ -6,7 +6,7 @@ import { ToastProvider } from '@project-bot/ui';
 
 function App() {
   return (
-    <div className="App">
+    <div className="App" data-testid="app-root">
       <ToastProvider>
         <FlowModeler />
       </ToastProvider>

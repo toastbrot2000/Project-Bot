@@ -2,7 +2,9 @@ import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom';
 import { BaseLayout, Navbar, Footer, ToastProvider, FunLoader, Logo, Button } from '@project-bot/ui';
 import './index.css';
+import './index.css';
 import Landing from './pages/Landing';
+import { getNavLinks } from './utils/nav';
 
 const UserApp = React.lazy(() => import('userApp/Main'));
 const AdminApp = React.lazy(() => import('adminApp/Dashboard'));
@@ -13,12 +15,7 @@ const AppNavbar = () => {
     // Different nav for landing if needed, but for now consistent
   }
 
-  const links = [
-    { label: 'Home', href: '/', active: location.pathname === '/' },
-    { label: 'User App', href: '/app', active: location.pathname.startsWith('/app') },
-    { label: 'Admin', href: '/admin', active: location.pathname.startsWith('/admin') },
-    { label: 'CMS', href: 'http://localhost:1337/admin', target: '_blank', active: false },
-  ];
+  const links = getNavLinks(location.pathname);
 
   return (
     <Navbar
@@ -48,7 +45,7 @@ function App() {
       <ToastProvider>
         <BaseLayout>
           <AppNavbar />
-          <div className="flex-1">
+          <div className="flex-1" data-testid="website-host-root">
             <Suspense fallback={<FunLoader />}>
               <Routes>
                 <Route path="/" element={<Landing />} />

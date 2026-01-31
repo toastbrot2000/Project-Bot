@@ -21,6 +21,8 @@ build
 .cache
 public/uploads
 **/.__mf__temp
+apps/backend/.strapi-updater.json
+
 
 # Logs
 logs
@@ -31,7 +33,8 @@ pnpm-debug.log*
 lerna-debug.log*
 apps/e2e/playwright-report/index.html
 apps/e2e/test-results/.last-run.json
-
+tests/e2e/playwright-report/index.html
+tests/e2e/test-results/.last-run.json
 
 # Environment and Secrets
 .env
