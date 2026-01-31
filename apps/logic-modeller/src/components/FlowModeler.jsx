@@ -58,7 +58,7 @@ const StartOverlay = ({ onCreate, onLoad }) => (
                     <MessageSquare size={48} />
                 </div>
             </div>
-            <h2 className="mb-3 text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Project Bot Admin</h2>
+            <h2 className="mb-3 text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Logic Modeller</h2>
             <p className="text-gray-500 mb-8">Create or edit your conversation flows visually.</p>
 
             <div className="flex flex-col gap-3">
@@ -951,7 +951,7 @@ const FlowModelerContent = () => {
                     <MiniMap pannable zoomable />
                     <Panel position="top-left" className="m-0 p-0 flex gap-2" style={{ top: '16px', left: '16px' }}>
                         <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-2 flex items-center gap-2">
-                            <span className="font-semibold px-2 text-sm text-gray-700">Project Bot Admin</span>
+                            <span className="font-semibold px-2 text-sm text-gray-700">Logic Modeller</span>
                             <div className="h-4 w-px bg-gray-300 mx-1"></div>
                             <button onClick={handleCreateNew} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-600 transition-colors" title="New File">
                                 <FilePlus size={18} />

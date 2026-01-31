@@ -1,16 +1,4 @@
-#root {
-  width: 100vw;
-  height: 100dvh;
-  /* dvh accounts for mobile browser toolbars */
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  /* overflow: hidden removed - was causing content to be cut off when exceeding viewport */
-}
+/* Global root and body styles removed to avoid conflicts when hosted as a remote module. */
 
 .App {
   width: 100%;
