@@ -1,0 +1,73 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: #213547;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* React Flow Edge Selection */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #e95d00 !important;
+  stroke-width: 3px !important;
+}
+
+/* Premium Flow Controls Styling & Alignment */
+.react-flow .react-flow__controls {
+  left: 31px !important;
+  bottom: 16px !important;
+  background: rgba(255, 255, 255, 0.9) !important; /* Match bg-white/90 */
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important; /* Match shadow-lg */
+  border: 1px solid #e5e7eb !important; /* Match border-gray-200 */
+  border-radius: 8px !important; /* Match rounded-lg */
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 4px !important;
+  gap: 2px !important;
+  margin: 0 !important;
+}
+
+.react-flow .react-flow__controls-button {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-radius: 6px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  color: #4b5563 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+}
+
+.react-flow .react-flow__controls-button:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #2563eb !important;
+  transform: translateY(-1px);
+}
+
+.react-flow .react-flow__controls-button svg {
+  fill: currentColor !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.react-flow .react-flow__controls-button:active {
+  transform: translateY(0);
+  background: rgba(59, 130, 246, 0.2) !important;
+}

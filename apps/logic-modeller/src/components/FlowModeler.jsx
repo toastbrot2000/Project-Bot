@@ -23,6 +23,7 @@ import { savePositions, clearPositions } from '../utils/positionManager';
 import { flowToXML, downloadXML } from '../utils/flowToXML';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { useHelperLines } from '../hooks/useFlowHelperLines';
+import { getUpdatedEdges } from '../utils/selectionUtils';
 import { useToast, Button } from '@project-bot/ui';
 import {
     FilePlus,
@@ -111,6 +112,8 @@ const FlowModelerContent = () => {
     const [isProjectLoaded, setIsProjectLoaded] = useState(false);
     const [flowKey, setFlowKey] = useState(0); // Key to force remount of ReactFlow
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [_selectionStart, setSelectionStart] = useState(null);
+
 
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
@@ -500,6 +503,27 @@ const FlowModelerContent = () => {
         setSelectedEdge(null);
     }, [selectedEdge, setEdges, getNodes, getEdges, takeSnapshot]);
 
+    const handleDeleteSelected = useCallback(() => {
+        const currentNodes = getNodes();
+        const currentEdges = getEdges();
+
+        const nodesToDelete = currentNodes.filter(n => n.selected);
+        const edgesToDelete = currentEdges.filter(e => e.selected);
+
+        if (nodesToDelete.length === 0 && edgesToDelete.length === 0) return;
+
+        takeSnapshot(currentNodes, currentEdges);
+
+        const nodeIdsToDelete = new Set(nodesToDelete.map(n => n.id));
+
+        setNodes((nds) => nds.filter(n => !nodeIdsToDelete.has(n.id)));
+        setEdges((eds) => eds.filter(e => !e.selected && !nodeIdsToDelete.has(e.source) && !nodeIdsToDelete.has(e.target)));
+
+        setSelectedNode(null);
+        setSelectedEdge(null);
+        setSelectedWaypoint(null);
+    }, [getNodes, getEdges, setNodes, setEdges, takeSnapshot]);
+
     // Keyboard event handler for deletion
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -537,19 +561,16 @@ const FlowModelerContent = () => {
                         return e;
                     }));
                     setSelectedWaypoint(null);
-                } else if (selectedNode) {
-                    // Delete node (existing behavior)
-                    handleDeleteNode();
-                } else if (selectedEdge) {
-                    // Delete edge (existing behavior)
-                    handleDeleteEdge();
+                } else {
+                    // Delete selected nodes/edges
+                    handleDeleteSelected();
                 }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, getNodes, getEdges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteNode, handleDeleteEdge]);
+    }, [selectedWaypoint, setEdges, getNodes, getEdges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteSelected]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -594,6 +615,52 @@ const FlowModelerContent = () => {
         setGlobalAnimate(prev => !prev);
         setEdges(eds => eds.map(e => ({ ...e, animated: e.selected ? true : !globalAnimate })));
     };
+
+    const onSelectionStart = useCallback((event) => {
+        const flowStartPos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        setSelectionStart(flowStartPos);
+
+        const handleMouseMove = (moveEvent) => {
+            const currentPos = screenToFlowPosition({ x: moveEvent.clientX, y: moveEvent.clientY });
+
+            const x = Math.min(flowStartPos.x, currentPos.x);
+            const y = Math.min(flowStartPos.y, currentPos.y);
+            const width = Math.abs(flowStartPos.x - currentPos.x);
+            const height = Math.abs(flowStartPos.y - currentPos.y);
+
+            const selectionBox = { x, y, width, height };
+            const currentNodes = getNodes();
+            
+            setEdges((eds) => getUpdatedEdges(eds, currentNodes, selectionBox, globalAnimate, moveEvent.shiftKey));
+        };
+
+        const handleMouseUp = (upEvent) => {
+            const finalPos = screenToFlowPosition({ x: upEvent.clientX, y: upEvent.clientY });
+            
+            const x = Math.min(flowStartPos.x, finalPos.x);
+            const y = Math.min(flowStartPos.y, finalPos.y);
+            const width = Math.abs(flowStartPos.x - finalPos.x);
+            const height = Math.abs(flowStartPos.y - finalPos.y);
+
+            if (width >= 5 || height >= 5) {
+                const selectionBox = { x, y, width, height };
+                const currentNodes = getNodes();
+                setEdges((eds) => getUpdatedEdges(eds, currentNodes, selectionBox, globalAnimate, upEvent.shiftKey));
+            }
+
+            setSelectionStart(null);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+    }, [screenToFlowPosition, getNodes, setEdges, globalAnimate]);
+
+    // onSelectionEnd is handled by global handleMouseUp
+    const onSelectionEnd = useCallback(() => {
+        setSelectionStart(null);
+    }, []);
 
     const loadFlowFromText = useCallback((text) => {
         try {
@@ -841,7 +908,7 @@ const FlowModelerContent = () => {
     }, [getNodes, addToast]);
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
+        <div className="relative w-full h-full">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -871,10 +938,12 @@ const FlowModelerContent = () => {
                     onPaneClick={onPaneClick}
                     onDragOver={onDragOver}
                     onDrop={onDrop}
+                    onSelectionStart={onSelectionStart}
+                    onSelectionEnd={onSelectionEnd}
                     selectionOnDrag={true}
                     selectionMode="partial"
-                    panOnDrag={[1]}
-                    panOnScroll={true}
+                    panOnDrag={[1, 2]}
+                    panOnScroll={false}
                 >
                     <Background gap={20} size={1} color="hsl(var(--border))" />
                     <HelperLines />
@@ -949,25 +1018,6 @@ const FlowModelerContent = () => {
 
                     <Panel position="bottom-center" className="m-0 mb-8">
                         <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-full px-4 py-2 flex items-center gap-4">
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => undo(nodes, edges, setNodes, setEdges)}
-                                    disabled={!canUndo}
-                                    className={`p-1.5 rounded-full transition-colors ${canUndo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
-                                    title="Undo"
-                                >
-                                    <Undo2 size={18} />
-                                </button>
-                                <button
-                                    onClick={() => redo(nodes, edges, setNodes, setEdges)}
-                                    disabled={!canRedo}
-                                    className={`p-1.5 rounded-full transition-colors ${canRedo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
-                                    title="Redo"
-                                >
-                                    <Redo2 size={18} />
-                                </button>
-                            </div>
-                            <div className="w-px h-5 bg-gray-300"></div>
                             <button
                                 onClick={toggleGlobalAnimation}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${globalAnimate ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'hover:bg-gray-100 text-gray-700'}`}
@@ -985,37 +1035,59 @@ const FlowModelerContent = () => {
                                     <Keyboard size={18} />
                                 </button>
                                 {showShortcuts && (
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white/95 backdrop-blur-md shadow-xl border border-gray-200 rounded-xl p-4 w-[280px] text-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                        <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">Keyboard Shortcuts</h3>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Save</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
-                                                    <span className="text-gray-400">+</span>
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">S</kbd>
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white/95 backdrop-blur-md shadow-xl border border-gray-200 rounded-xl p-4 w-[320px] text-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                        <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">Controls</h3>
+                                        
+                                        <div className="mb-3">
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Navigation</h4>
+                                            <div className="flex flex-col gap-1.5 text-gray-600 text-xs">
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span><strong>Pan:</strong> Middle or Right mouse button + drag</span>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span><strong>Zoom:</strong> Scroll wheel</span>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span><strong>Select:</strong> Left click + drag for box selection</span>
                                                 </div>
                                             </div>
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Undo</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
-                                                    <span className="text-gray-400">+</span>
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                        </div>
+
+                                        <div className="border-t pt-3">
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Keyboard Shortcuts</h4>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Save</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
+                                                        <span className="text-gray-400">+</span>
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">S</kbd>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Redo</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Shift</kbd>
-                                                    <span className="text-gray-400">+</span>
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Undo</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
+                                                        <span className="text-gray-400">+</span>
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Delete</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Del</kbd>
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Redo</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Shift</kbd>
+                                                        <span className="text-gray-400">+</span>
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Delete</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Del</kbd>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1026,10 +1098,11 @@ const FlowModelerContent = () => {
                     </Panel>
 
                     <Panel position="top-right" className="top-20 right-4">
-                        {(selectedNode || selectedEdge || selectedWaypoint) && (
+                        {(selectedNode || selectedEdge || selectedWaypoint || nodes.some(n => n.selected) || edges.some(e => e.selected)) && (
                             <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-2 flex flex-col gap-2 animate-in fade-in slide-in-from-right-4 duration-200 min-w-[180px]">
                                 <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 px-1">Selected</div>
-                                {selectedNode && (
+                                
+                                {selectedNode && !nodes.some(n => n.selected && n.id !== selectedNode.id) && !edges.some(e => e.selected) && (
                                     <button
                                         onClick={handleDeleteNode}
                                         className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
@@ -1038,7 +1111,8 @@ const FlowModelerContent = () => {
                                         <span>Delete Node</span>
                                     </button>
                                 )}
-                                {selectedEdge && (
+
+                                {selectedEdge && !edges.some(e => e.selected && e.id !== selectedEdge.id) && !nodes.some(n => n.selected) && (
                                     <button
                                         onClick={handleDeleteEdge}
                                         className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
@@ -1047,8 +1121,19 @@ const FlowModelerContent = () => {
                                         <span>Delete Edge</span>
                                     </button>
                                 )}
+
+                                {(nodes.filter(n => n.selected).length + edges.filter(e => e.selected).length > 1) && (
+                                    <button
+                                        onClick={handleDeleteSelected}
+                                        className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
+                                    >
+                                        <Trash2 size={16} />
+                                        <span>Delete Selected ({nodes.filter(n => n.selected).length + edges.filter(e => e.selected).length})</span>
+                                    </button>
+                                )}
+
                                 {selectedWaypoint && (
-                                    <div className="text-xs text-center text-gray-500 py-1">
+                                    <div className="text-xs text-center text-gray-500 py-1 border-t mt-1 pt-2">
                                         Waypoint Selected <br /> (Press Del to remove)
                                     </div>
                                 )}

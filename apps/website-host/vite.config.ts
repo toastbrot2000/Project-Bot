@@ -13,9 +13,9 @@ export default defineConfig({
           name: 'userApp',
           entry: 'http://localhost:5001/remoteEntry.js',
         },
-        adminApp: {
+        logicModeller: {
           type: 'module',
-          name: 'adminApp',
+          name: 'logicModeller',
           entry: 'http://localhost:5002/remoteEntry.js',
         },
       },

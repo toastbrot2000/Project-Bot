@@ -7,7 +7,7 @@ import Landing from './pages/Landing';
 import { getNavLinks } from './utils/nav';
 
 const UserApp = React.lazy(() => import('userApp/Main'));
-const AdminApp = React.lazy(() => import('adminApp/Dashboard'));
+const LogicModeller = React.lazy(() => import('logicModeller/LogicModeller'));
 
 const AppNavbar = () => {
   const location = useLocation();
@@ -50,7 +50,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/app/*" element={<UserApp />} />
-                <Route path="/admin/*" element={<AdminApp />} />
+                <Route path="/logic-modeller/*" element={<LogicModeller />} />
               </Routes>
             </Suspense>
           </div>
