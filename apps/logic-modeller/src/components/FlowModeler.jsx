@@ -942,7 +942,7 @@ const FlowModelerContent = () => {
                     onSelectionEnd={onSelectionEnd}
                     selectionOnDrag={true}
                     selectionMode="partial"
-                    panOnDrag={[1]}
+                    panOnDrag={[1, 2]}
                     panOnScroll={false}
                 >
                     <Background gap={20} size={1} color="hsl(var(--border))" />
@@ -1035,37 +1035,59 @@ const FlowModelerContent = () => {
                                     <Keyboard size={18} />
                                 </button>
                                 {showShortcuts && (
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white/95 backdrop-blur-md shadow-xl border border-gray-200 rounded-xl p-4 w-[280px] text-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                        <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">Keyboard Shortcuts</h3>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Save</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
-                                                    <span className="text-gray-400">+</span>
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">S</kbd>
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white/95 backdrop-blur-md shadow-xl border border-gray-200 rounded-xl p-4 w-[320px] text-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                        <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">Controls</h3>
+                                        
+                                        <div className="mb-3">
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Navigation</h4>
+                                            <div className="flex flex-col gap-1.5 text-gray-600 text-xs">
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span><strong>Pan:</strong> Middle or Right mouse button + drag</span>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span><strong>Zoom:</strong> Scroll wheel</span>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-gray-400">•</span>
+                                                    <span><strong>Select:</strong> Left click + drag for box selection</span>
                                                 </div>
                                             </div>
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Undo</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
-                                                    <span className="text-gray-400">+</span>
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                        </div>
+
+                                        <div className="border-t pt-3">
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Keyboard Shortcuts</h4>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Save</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
+                                                        <span className="text-gray-400">+</span>
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">S</kbd>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Redo</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Shift</kbd>
-                                                    <span className="text-gray-400">+</span>
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Undo</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
+                                                        <span className="text-gray-400">+</span>
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex justify-between items-center text-gray-600">
-                                                <span>Delete</span>
-                                                <div className="flex gap-1">
-                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Del</kbd>
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Redo</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Shift</kbd>
+                                                        <span className="text-gray-400">+</span>
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center text-gray-600">
+                                                    <span>Delete</span>
+                                                    <div className="flex gap-1">
+                                                        <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Del</kbd>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
