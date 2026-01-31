@@ -500,6 +500,27 @@ const FlowModelerContent = () => {
         setSelectedEdge(null);
     }, [selectedEdge, setEdges, getNodes, getEdges, takeSnapshot]);
 
+    const handleDeleteSelected = useCallback(() => {
+        const currentNodes = getNodes();
+        const currentEdges = getEdges();
+
+        const nodesToDelete = currentNodes.filter(n => n.selected);
+        const edgesToDelete = currentEdges.filter(e => e.selected);
+
+        if (nodesToDelete.length === 0 && edgesToDelete.length === 0) return;
+
+        takeSnapshot(currentNodes, currentEdges);
+
+        const nodeIdsToDelete = new Set(nodesToDelete.map(n => n.id));
+
+        setNodes((nds) => nds.filter(n => !nodeIdsToDelete.has(n.id)));
+        setEdges((eds) => eds.filter(e => !e.selected && !nodeIdsToDelete.has(e.source) && !nodeIdsToDelete.has(e.target)));
+
+        setSelectedNode(null);
+        setSelectedEdge(null);
+        setSelectedWaypoint(null);
+    }, [getNodes, getEdges, setNodes, setEdges, takeSnapshot]);
+
     // Keyboard event handler for deletion
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -537,19 +558,16 @@ const FlowModelerContent = () => {
                         return e;
                     }));
                     setSelectedWaypoint(null);
-                } else if (selectedNode) {
-                    // Delete node (existing behavior)
-                    handleDeleteNode();
-                } else if (selectedEdge) {
-                    // Delete edge (existing behavior)
-                    handleDeleteEdge();
+                } else {
+                    // Delete selected nodes/edges
+                    handleDeleteSelected();
                 }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, getNodes, getEdges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteNode, handleDeleteEdge]);
+    }, [selectedWaypoint, setEdges, getNodes, getEdges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteSelected]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -1026,10 +1044,11 @@ const FlowModelerContent = () => {
                     </Panel>
 
                     <Panel position="top-right" className="top-20 right-4">
-                        {(selectedNode || selectedEdge || selectedWaypoint) && (
+                        {(selectedNode || selectedEdge || selectedWaypoint || nodes.some(n => n.selected) || edges.some(e => e.selected)) && (
                             <div className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-lg p-2 flex flex-col gap-2 animate-in fade-in slide-in-from-right-4 duration-200 min-w-[180px]">
                                 <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 px-1">Selected</div>
-                                {selectedNode && (
+                                
+                                {selectedNode && !nodes.some(n => n.selected && n.id !== selectedNode.id) && !edges.some(e => e.selected) && (
                                     <button
                                         onClick={handleDeleteNode}
                                         className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
@@ -1038,7 +1057,8 @@ const FlowModelerContent = () => {
                                         <span>Delete Node</span>
                                     </button>
                                 )}
-                                {selectedEdge && (
+
+                                {selectedEdge && !edges.some(e => e.selected && e.id !== selectedEdge.id) && !nodes.some(n => n.selected) && (
                                     <button
                                         onClick={handleDeleteEdge}
                                         className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
@@ -1047,8 +1067,19 @@ const FlowModelerContent = () => {
                                         <span>Delete Edge</span>
                                     </button>
                                 )}
+
+                                {(nodes.filter(n => n.selected).length + edges.filter(e => e.selected).length > 1) && (
+                                    <button
+                                        onClick={handleDeleteSelected}
+                                        className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-md transition-colors text-sm w-full"
+                                    >
+                                        <Trash2 size={16} />
+                                        <span>Delete Selected ({nodes.filter(n => n.selected).length + edges.filter(e => e.selected).length})</span>
+                                    </button>
+                                )}
+
                                 {selectedWaypoint && (
-                                    <div className="text-xs text-center text-gray-500 py-1">
+                                    <div className="text-xs text-center text-gray-500 py-1 border-t mt-1 pt-2">
                                         Waypoint Selected <br /> (Press Del to remove)
                                     </div>
                                 )}
