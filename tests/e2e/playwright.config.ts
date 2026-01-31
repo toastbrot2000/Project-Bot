@@ -66,7 +66,7 @@ export default defineConfig({
       cwd: '../../',
     },
     {
-      command: 'npx strapi develop',
+      command: process.env.CI ? 'npx strapi start' : 'npx strapi develop',
       url: 'http://127.0.0.1:1337',
       reuseExistingServer: !process.env.CI,
       timeout: 180 * 1000,
