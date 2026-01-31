@@ -197,25 +197,25 @@ const FlowModelerContent = () => {
         let markerEnd = { type: MarkerType.ArrowClosed };
         let style = { strokeWidth: 2 };
 
-        // Q→O edges: Thin, solid, gray (muted-foreground)
+        // Q→O edges: Solid, gray (muted-foreground) - slightly thicker
         if (sourceNode?.type === 'questionNode' && targetNode?.type === 'optionNode') {
             type = 'q-to-o';
-            style = { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1 };
+            style = { stroke: 'hsl(var(--muted-foreground))', strokeWidth: 2 };
         }
         // O→Q edges: Bold, dashed, dark gray (foreground)
         else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'questionNode') {
             type = 'o-to-q';
-            style = { stroke: 'hsl(var(--foreground))', strokeWidth: 2, strokeDasharray: '5,5' };
+            style = { stroke: 'hsl(var(--foreground))', strokeWidth: 3, strokeDasharray: '6,6' };
         }
         // O→D edges: Bold, dashed, blue (primary)
         else if (sourceNode?.type === 'optionNode' && targetNode?.type === 'documentNode') {
             type = 'o-to-d';
-            style = { stroke: 'hsl(var(--primary))', strokeWidth: 2, strokeDasharray: '5,5' };
+            style = { stroke: 'hsl(var(--primary))', strokeWidth: 3, strokeDasharray: '6,6' };
         }
         // Any→End edges: Solid, red (destructive)
         else if (targetNode?.type === 'endNode') {
             type = 'default';
-            style = { stroke: 'hsl(var(--destructive))', strokeWidth: 2 };
+            style = { stroke: 'hsl(var(--destructive))', strokeWidth: 3 };
         }
 
         return { type, animated, markerEnd, style };
@@ -945,7 +945,7 @@ const FlowModelerContent = () => {
                     panOnDrag={[1, 2]}
                     panOnScroll={false}
                 >
-                    <Background gap={20} size={1} color="hsl(var(--border))" />
+                    <Background gap={25} size={2.5} color="hsl(var(--muted-foreground) / 0.25)" />
                     <HelperLines />
                     <Controls />
                     <MiniMap pannable zoomable />

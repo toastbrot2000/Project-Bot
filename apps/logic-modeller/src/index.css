@@ -19,7 +19,7 @@
 /* React Flow Edge Selection */
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: #e95d00 !important;
-  stroke-width: 3px !important;
+  stroke-width: 4px !important;
 }
 
 /* Premium Flow Controls Styling & Alignment */
@@ -29,7 +29,9 @@
   background: rgba(255, 255, 255, 0.9) !important; /* Match bg-white/90 */
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important; /* Match shadow-lg */
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1) !important; /* Match shadow-lg */
   border: 1px solid #e5e7eb !important; /* Match border-gray-200 */
   border-radius: 8px !important; /* Match rounded-lg */
   overflow: hidden !important;
