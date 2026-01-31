@@ -13,7 +13,7 @@
     "@project-bot/tailwind-config": "workspace:*",
     "@project-bot/ui": "workspace:*",
     "dagre": "^0.8.5",
-    "fast-xml-parser": "^5.3.2",
+    "fast-xml-parser": "^5.3.4",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.554.0",
     "react": "^19.2.0",

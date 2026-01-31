@@ -27,3 +27,6 @@ dist-ssr
 
 # Ignore XML files in public folders
 **/public/*.xml
+apps/backend/.strapi-updater.json
+audit_report.json
+audit.json
