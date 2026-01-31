@@ -61,7 +61,7 @@ function App() {
   }
 
   return (
-    <div id="main-content">
+    <div id="main-content" data-testid="user-app-root">
       <div id="chat-container">
         <div id="chat-box" ref={chatBoxRef}>
           {history.map((msg, idx) => (

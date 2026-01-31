@@ -6,8 +6,29 @@ on:
   pull_request:
     branches: [main]
 
+# Avoid redundant builds on the same PR when you push new commits quickly
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  lint:
+  # 1. Setup job to install dependencies once and share them
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+
+  # 2. Fast checks (Lint & Audit)
+  static-analysis:
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,37 +41,35 @@ jobs:
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-
-  test-unit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
-
-  audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
       - run: pnpm run audit
 
-  test-e2e:
+  # 3. Logic checks (Unit) - only run if lint passes
+  test-unit:
+    needs: static-analysis
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # IMPORTANT: Fetches all history so pnpm can compare against origin/main
+      - run: git fetch origin main:main # Ensures a local 'main' exists for comparison
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+      # Now this will actually work
+      - run: pnpm test:affected
+
+  # 4. Heavy checks (E2E) - only run if Unit passes
+  test-e2e:
+    needs: test-unit
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
