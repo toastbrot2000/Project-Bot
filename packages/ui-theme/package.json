@@ -2,10 +2,16 @@
     "name": "@project-bot/ui-theme",
     "version": "0.0.0",
     "main": "index.ts",
-    "scripts": {},
-    "dependencies": {},
+    "scripts": {
+        "lint": "eslint ."
+    },
     "peerDependencies": {
         "react": "^18.0.0",
         "react-dom": "^18.0.0"
+    },
+    "devDependencies": {
+        "eslint": "^9.39.2",
+        "globals": "^16.5.0",
+        "typescript-eslint": "^8.53.1"
     }
 }

@@ -39,7 +39,8 @@ import {
     MessageSquare,
     List,
     FileText,
-    StopCircle
+    StopCircle,
+    Keyboard
 } from 'lucide-react';
 
 const nodeTypes = {
@@ -101,6 +102,7 @@ const FlowModelerContent = () => {
     const [fileHandle, setFileHandle] = useState(null);
     const [isProjectLoaded, setIsProjectLoaded] = useState(false);
     const [flowKey, setFlowKey] = useState(0); // Key to force remount of ReactFlow
+    const [showShortcuts, setShowShortcuts] = useState(false);
 
     const edgeTypes = useMemo(() => ({
         'q-to-o': BezierEdge,
@@ -329,6 +331,15 @@ const FlowModelerContent = () => {
         event.dataTransfer.dropEffect = 'move';
     }, []);
 
+    const onNodeUpdate = useCallback((nodeId, newData) => {
+        setNodes((nds) => nds.map((node) => {
+            if (node.id === nodeId) {
+                return { ...node, data: { ...newData, onUpdate: onNodeUpdate } };
+            }
+            return node;
+        }));
+    }, [setNodes]);
+
     const onDrop = useCallback(
         (event) => {
             event.preventDefault();
@@ -347,14 +358,17 @@ const FlowModelerContent = () => {
                 id: `${type}-${Date.now()}`,
                 type,
                 position,
-                data: { label: `New ${type}` },
+                data: {
+                    label: `New ${type}`,
+                    onUpdate: onNodeUpdate
+                },
             };
 
             takeSnapshot(nodes, edges);
             setNodes((nds) => nds.concat(newNode));
             setManuallyMovedNodes((prev) => new Set(prev).add(newNode.id));
         },
-        [screenToFlowPosition, setNodes, nodes, edges, takeSnapshot]
+        [screenToFlowPosition, setNodes, nodes, edges, takeSnapshot, onNodeUpdate]
     );
 
     const onNodeClick = useCallback((event, node) => {
@@ -582,7 +596,16 @@ const FlowModelerContent = () => {
             setEdges([]);
 
             // Set new state
-            setNodes(newNodes);
+            // Inject onUpdate callback into all nodes
+            const nodesWithCallbacks = newNodes.map(node => ({
+                ...node,
+                data: {
+                    ...node.data,
+                    onUpdate: onNodeUpdate
+                }
+            }));
+
+            setNodes(nodesWithCallbacks);
             setEdges(newEdges.map(e => ({
                 ...e,
                 data: { ...e.data, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop }
@@ -591,7 +614,7 @@ const FlowModelerContent = () => {
             console.error('Error parsing XML:', error);
             addToast('Error loading XML file. Please check the file format.', 'error');
         }
-    }, [nodes, edges, takeSnapshot, setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop]);
+    }, [nodes, edges, takeSnapshot, setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, onNodeUpdate]);
 
     const handleSave = useCallback(async () => {
         const xml = flowToXML(nodes, edges);
@@ -599,6 +622,10 @@ const FlowModelerContent = () => {
         if (fileHandle && window.showSaveFilePicker) {
             try {
                 const writable = await fileHandle.createWritable();
+
+                // Save positions before generating XML to ensure up-to-date state
+                savePositions(nodes, manuallyMovedNodes, edges);
+
                 await writable.write(xml);
                 await writable.close();
                 // Optional: could show a toast here
@@ -609,7 +636,9 @@ const FlowModelerContent = () => {
         } else {
             downloadXML(xml);
         }
-    }, [nodes, edges, fileHandle]);
+    }, [nodes, edges, fileHandle, manuallyMovedNodes]);
+
+
 
     const handleSaveAs = useCallback(async () => {
         const xml = flowToXML(nodes, edges);
@@ -622,6 +651,10 @@ const FlowModelerContent = () => {
                     }],
                 });
                 const writable = await handle.createWritable();
+
+                // Save positions
+                savePositions(nodes, manuallyMovedNodes, edges);
+
                 await writable.write(xml);
                 await writable.close();
                 setFileHandle(handle);
@@ -708,6 +741,19 @@ const FlowModelerContent = () => {
         }
     }, [loadFlowFromText]);
 
+    // Save shortcut
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                handleSave();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleSave]);
+
     const handleFileChange = useCallback(async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -777,7 +823,7 @@ const FlowModelerContent = () => {
     }, [nodes]);
 
     return (
-        <div style={{ width: '100%', height: '100dvh' }}>
+        <div style={{ width: '100%', height: '100%' }}>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -911,6 +957,53 @@ const FlowModelerContent = () => {
                                 {globalAnimate ? <Pause size={16} /> : <Play size={16} />}
                                 <span>{globalAnimate ? 'Running' : 'Run Flow'}</span>
                             </button>
+                            <div className="w-px h-5 bg-gray-300"></div>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowShortcuts(!showShortcuts)}
+                                    className={`p-1.5 rounded-full transition-colors ${showShortcuts ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-700'}`}
+                                    title="Keyboard Shortcuts"
+                                >
+                                    <Keyboard size={18} />
+                                </button>
+                                {showShortcuts && (
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white/95 backdrop-blur-md shadow-xl border border-gray-200 rounded-xl p-4 w-[280px] text-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                        <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">Keyboard Shortcuts</h3>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span>Save</span>
+                                                <div className="flex gap-1">
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
+                                                    <span className="text-gray-400">+</span>
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">S</kbd>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span>Undo</span>
+                                                <div className="flex gap-1">
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘/Ctrl</kbd>
+                                                    <span className="text-gray-400">+</span>
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span>Redo</span>
+                                                <div className="flex gap-1">
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Shift</kbd>
+                                                    <span className="text-gray-400">+</span>
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Z</kbd>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span>Delete</span>
+                                                <div className="flex gap-1">
+                                                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Del</kbd>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </Panel>
 

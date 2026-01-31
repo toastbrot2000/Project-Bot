@@ -9,12 +9,12 @@ export function BaseLayout({ className, children, ...props }: BaseLayoutProps) {
     return (
         <div
             className={cn(
-                "min-h-screen bg-background font-sans text-foreground antialiased",
+                "h-screen overflow-hidden bg-background font-sans text-foreground antialiased",
                 className
             )}
             {...props}
         >
-            <div className="relative flex min-h-screen flex-col">
+            <div className="relative flex h-full flex-col">
                 {children}
             </div>
         </div>
