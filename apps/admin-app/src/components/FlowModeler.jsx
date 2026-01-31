@@ -141,7 +141,7 @@ const FlowModelerContent = () => {
             }
             dragStartSnapshot.current = null;
         }
-    }, [nodes, edges, takeSnapshot]);
+    }, [edges, takeSnapshot]);
 
     const onWaypointClick = useCallback((edgeId, index) => {
         setSelectedWaypoint({ edgeId, index });
@@ -248,7 +248,7 @@ const FlowModelerContent = () => {
         };
 
         setEdges((eds) => addEdge(newEdge, eds));
-    }, [nodes, edges, globalAnimate, setEdges, onWaypointDrag, getEdgeParams]);
+    }, [nodes, edges, globalAnimate, setEdges, onWaypointDrag, getEdgeParams, takeSnapshot, onWaypointClick, onWaypointDragStart, onWaypointDragStop]);
 
     const onReconnect = useCallback((oldEdge, newConnection) => {
         takeSnapshot(nodes, edges);
@@ -298,7 +298,7 @@ const FlowModelerContent = () => {
                 return e;
             });
         });
-    }, [nodes, edges, setEdges, getEdgeParams, onWaypointDrag, onWaypointClick, globalAnimate]);
+    }, [nodes, edges, setEdges, getEdgeParams, onWaypointDrag, onWaypointClick, globalAnimate, takeSnapshot, onWaypointDragStart, onWaypointDragStop]);
 
     const onNodeDragStart = useCallback(() => {
         dragStartSnapshot.current = { nodes, edges };
@@ -322,7 +322,7 @@ const FlowModelerContent = () => {
             }
             dragStartSnapshot.current = null;
         }
-    }, [nodes, edges, takeSnapshot, resetHelperLines]);
+    }, [nodes, takeSnapshot, resetHelperLines]);
 
     const onNodeDrag = useCallback((event, node) => {
         onNodeDragHelper(event, node, nodes, setNodes);
@@ -473,7 +473,7 @@ const FlowModelerContent = () => {
                 animated: e.id === edge.id ? true : globalAnimate
             })));
         }
-    }, [selectedEdge, screenToFlowPosition, setEdges, onWaypointDrag, onWaypointClick, nodes, edges, globalAnimate, takeSnapshot]);
+    }, [selectedEdge, screenToFlowPosition, setEdges, onWaypointDrag, onWaypointClick, nodes, edges, globalAnimate, takeSnapshot, onWaypointDragStart, onWaypointDragStop]);
 
     const handleDeleteNode = useCallback(() => {
         if (!selectedNode) return;
@@ -484,7 +484,7 @@ const FlowModelerContent = () => {
         takeSnapshot(nodes, edges);
         setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id));
         setSelectedNode(null);
-    }, [selectedNode, setNodes, setEdges, nodes, edges, takeSnapshot]);
+    }, [selectedNode, setNodes, nodes, edges, takeSnapshot]);
 
     const handleDeleteEdge = useCallback(() => {
         if (!selectedEdge) return;
@@ -542,7 +542,7 @@ const FlowModelerContent = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, nodes, edges, takeSnapshot]);
+    }, [selectedWaypoint, selectedNode, selectedEdge, setEdges, nodes, edges, takeSnapshot, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, handleDeleteNode, handleDeleteEdge]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -619,7 +619,7 @@ const FlowModelerContent = () => {
             console.error('Error parsing XML:', error);
             addToast('Error loading XML file. Please check the file format.', 'error');
         }
-    }, [nodes, edges, takeSnapshot, setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, onNodeUpdate]);
+    }, [setNodes, setEdges, onWaypointDrag, onWaypointClick, onWaypointDragStart, onWaypointDragStop, onNodeUpdate, addToast]);
 
     const handleSave = useCallback(async () => {
         const xml = flowToXML(nodes, edges);

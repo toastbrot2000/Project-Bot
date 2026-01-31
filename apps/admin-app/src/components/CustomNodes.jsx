@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect } from 'react';
+import React, { useState, memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import TextModal from './TextModal';
 
@@ -11,24 +11,22 @@ const truncateText = (text, maxLength = 80) => {
 export const QuestionNode = memo(({ data, id, selected }) => {
     const [isEditingQuestion, setIsEditingQuestion] = useState(false);
     const [showTooltipModal, setShowTooltipModal] = useState(false);
-    const [questionText, setQuestionText] = useState(data.label);
+    // Initialize temporary state for editing, but don't rely on it for display in non-edit mode
+    const [tempQuestionText, setTempQuestionText] = useState(data.label);
     const [tooltipText, setTooltipText] = useState(data.tooltip || '');
     const [tempTooltipText, setTempTooltipText] = useState(data.tooltip || '');
 
-    useEffect(() => {
-        setQuestionText(data.label);
-        setTooltipText(data.tooltip || '');
-        setTempTooltipText(data.tooltip || '');
-    }, [data.label, data.tooltip]);
+    // Removed useEffect that was causing cascading renders
 
     const handleQuestionDoubleClick = () => {
+        setTempQuestionText(data.label);
         setIsEditingQuestion(true);
     };
 
     const handleQuestionBlur = () => {
         setIsEditingQuestion(false);
         if (data.onUpdate) {
-            data.onUpdate(id, { ...data, label: questionText });
+            data.onUpdate(id, { ...data, label: tempQuestionText });
         }
     };
 
@@ -41,9 +39,11 @@ export const QuestionNode = memo(({ data, id, selected }) => {
 
     const openTooltipModal = (e) => {
         e.stopPropagation();
-        setTempTooltipText(tooltipText);
+        setTempTooltipText(data.tooltip || '');
         setShowTooltipModal(true);
     };
+
+    // Derived values for display
 
     return (
         <div
@@ -57,8 +57,8 @@ export const QuestionNode = memo(({ data, id, selected }) => {
             {/* Question text - editable on double click */}
             {isEditingQuestion ? (
                 <textarea
-                    value={questionText}
-                    onChange={(e) => setQuestionText(e.target.value)}
+                    value={tempQuestionText}
+                    onChange={(e) => setTempQuestionText(e.target.value)}
                     onBlur={handleQuestionBlur}
                     autoFocus
                     className="w-full text-sm font-medium bg-background text-foreground rounded p-1 min-h-[40px] resize-y focus:outline-none"
@@ -68,7 +68,7 @@ export const QuestionNode = memo(({ data, id, selected }) => {
                     className="text-sm font-medium text-foreground mb-0 cursor-text pr-5"
                     onDoubleClick={handleQuestionDoubleClick}
                 >
-                    {questionText}
+                    {data.label}
                 </div>
             )}
 
@@ -111,20 +111,19 @@ export const QuestionNode = memo(({ data, id, selected }) => {
 
 export const OptionNode = memo(({ data, id, selected }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [optionText, setOptionText] = useState(data.label);
+    const [tempOptionText, setTempOptionText] = useState(data.label);
 
-    useEffect(() => {
-        setOptionText(data.label);
-    }, [data.label]);
+    // Removed useEffect
 
     const handleDoubleClick = () => {
+        setTempOptionText(data.label);
         setIsEditing(true);
     };
 
     const handleBlur = () => {
         setIsEditing(false);
         if (data.onUpdate) {
-            data.onUpdate(id, { ...data, label: optionText });
+            data.onUpdate(id, { ...data, label: tempOptionText });
         }
     };
 
@@ -142,8 +141,8 @@ export const OptionNode = memo(({ data, id, selected }) => {
             <div className="z-10 relative w-full text-center">
                 {isEditing ? (
                     <textarea
-                        value={optionText}
-                        onChange={(e) => setOptionText(e.target.value)}
+                        value={tempOptionText}
+                        onChange={(e) => setTempOptionText(e.target.value)}
                         onBlur={handleBlur}
                         autoFocus
                         className="text-[10px] font-semibold text-center bg-background text-foreground border border-border rounded p-0.5 w-[90px] h-[40px] resize-none focus:outline-none"
@@ -153,7 +152,7 @@ export const OptionNode = memo(({ data, id, selected }) => {
                         className="text-[10px] font-semibold text-secondary-foreground text-center px-1 cursor-text break-words max-w-[100px]"
                         onDoubleClick={handleDoubleClick}
                     >
-                        {optionText}
+                        {data.label}
                     </div>
                 )}
             </div>
@@ -170,39 +169,31 @@ export const OptionNode = memo(({ data, id, selected }) => {
 export const DocumentNode = memo(({ data, id, selected }) => {
     const [isEditingLabel, setIsEditingLabel] = useState(false);
     const [showDescriptionModal, setShowDescriptionModal] = useState(false);
-    const [docText, setDocText] = useState(data.label);
-    const [docType, setDocType] = useState(data.docType || 'optional');
-    const [descriptionText, setDescriptionText] = useState(data.description || '');
+    const [tempDocText, setTempDocText] = useState(data.label);
     const [tempDescriptionText, setTempDescriptionText] = useState(data.description || '');
 
-    useEffect(() => {
-        setDocText(data.label);
-        setDocType(data.docType || 'optional');
-        setDescriptionText(data.description || '');
-        setTempDescriptionText(data.description || '');
-    }, [data.label, data.docType, data.description]);
+    // Removed useEffect
 
     const handleLabelDoubleClick = () => {
+        setTempDocText(data.label);
         setIsEditingLabel(true);
     };
 
     const handleLabelBlur = () => {
         setIsEditingLabel(false);
         if (data.onUpdate) {
-            data.onUpdate(id, { ...data, label: docText });
+            data.onUpdate(id, { ...data, label: tempDocText });
         }
     };
 
     const handleTypeClick = () => {
-        const newType = docType === 'mandatory' ? 'optional' : 'mandatory';
-        setDocType(newType);
+        const newType = (data.docType || 'optional') === 'mandatory' ? 'optional' : 'mandatory';
         if (data.onUpdate) {
             data.onUpdate(id, { ...data, docType: newType });
         }
     };
 
     const handleDescriptionSave = () => {
-        setDescriptionText(tempDescriptionText);
         if (data.onUpdate) {
             data.onUpdate(id, { ...data, description: tempDescriptionText });
         }
@@ -210,11 +201,13 @@ export const DocumentNode = memo(({ data, id, selected }) => {
 
     const openDescriptionModal = (e) => {
         e.stopPropagation();
-        setTempDescriptionText(descriptionText);
+        setTempDescriptionText(data.description || '');
         setShowDescriptionModal(true);
     };
 
+    const docType = data.docType || 'optional';
     const isMandatory = docType === 'mandatory';
+    const descriptionText = data.description || '';
 
     return (
         <div
@@ -240,8 +233,8 @@ export const DocumentNode = memo(({ data, id, selected }) => {
                     {/* Document label */}
                     {isEditingLabel ? (
                         <textarea
-                            value={docText}
-                            onChange={(e) => setDocText(e.target.value)}
+                            value={tempDocText}
+                            onChange={(e) => setTempDocText(e.target.value)}
                             onBlur={handleLabelBlur}
                             autoFocus
                             className="w-full text-[13px] font-semibold text-foreground bg-background/90 rounded p-1 min-h-[30px] resize-y focus:outline-none"
@@ -251,7 +244,7 @@ export const DocumentNode = memo(({ data, id, selected }) => {
                             className="text-[13px] font-semibold text-foreground cursor-text pr-5"
                             onDoubleClick={handleLabelDoubleClick}
                         >
-                            {docText}
+                            {data.label}
                         </div>
                     )}
 
@@ -301,20 +294,19 @@ export const WaypointNode = memo(() => {
 
 export const EndNode = memo(({ data, id, selected }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [labelText, setLabelText] = useState(data.label || 'End');
+    const [tempLabelText, setTempLabelText] = useState(data.label || 'End');
 
-    useEffect(() => {
-        setLabelText(data.label || 'End');
-    }, [data.label]);
+    // Remove useEffect
 
     const handleDoubleClick = () => {
+        setTempLabelText(data.label || 'End');
         setIsEditing(true);
     };
 
     const handleBlur = () => {
         setIsEditing(false);
         if (data.onUpdate) {
-            data.onUpdate(id, { ...data, label: labelText });
+            data.onUpdate(id, { ...data, label: tempLabelText });
         }
     };
 
@@ -330,8 +322,8 @@ export const EndNode = memo(({ data, id, selected }) => {
             <div className="z-10 relative w-full text-center">
                 {isEditing ? (
                     <textarea
-                        value={labelText}
-                        onChange={(e) => setLabelText(e.target.value)}
+                        value={tempLabelText}
+                        onChange={(e) => setTempLabelText(e.target.value)}
                         onBlur={handleBlur}
                         autoFocus
                         className="text-[10px] font-semibold text-center bg-background text-destructive-foreground border-none rounded p-0.5 w-[50px] h-[30px] resize-none overflow-hidden block mx-auto focus:outline-none"
@@ -341,7 +333,7 @@ export const EndNode = memo(({ data, id, selected }) => {
                         className="text-[10px] font-bold text-destructive cursor-text max-w-[50px] leading-tight mx-auto break-words"
                         onDoubleClick={handleDoubleClick}
                     >
-                        {labelText}
+                        {data.label || 'End'}
                     </div>
                 )}
             </div>
